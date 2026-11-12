@@ -21,6 +21,16 @@
   pointer-events: none;            /* 让鼠标能"穿过"文字和粒子互动 */
 }
 .dz-hero__inner a { pointer-events: auto; }
+.dz-hero__avatar {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.4rem;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid rgba(165, 180, 252, .55);
+  box-shadow: 0 0 28px rgba(99, 102, 241, .55);
+}
 .dz-hero__eyebrow {
   margin: 0 0 1rem;
   font-size: .75rem;

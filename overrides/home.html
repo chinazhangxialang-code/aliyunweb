@@ -12,7 +12,9 @@
   <section class="dz-hero" aria-label="首屏">
     <canvas id="dz-canvas" aria-hidden="true"></canvas>
     <div class="dz-hero__inner">
-      <img class="dz-hero__avatar" src="{{ 'images/avatar.jpg' | url }}" alt="张夏浪" width="120" height="120">
+      <button class="dz-hero__avatar-btn" type="button" id="dz-avatar-btn" aria-haspopup="dialog" title="点击查看个人介绍">
+        <img class="dz-hero__avatar" src="{{ 'images/avatar.jpg' | url }}" alt="张夏浪" width="120" height="120">
+      </button>
       <p class="dz-hero__eyebrow">DATA WAREHOUSE × LLM AGENT</p>
       <h1 class="dz-hero__title">用数仓工程师的方式<br><span class="dz-grad">学大模型</span></h1>
       <p class="dz-hero__typed"><span id="dz-typed"></span><span class="dz-caret">|</span></p>
@@ -28,6 +30,23 @@
     </div>
     <a class="dz-scroll" href="#dz-content" aria-label="向下滚动">SCROLL ↓</a>
   </section>
+
+  {#- 点击头像弹出的个人卡片 -#}
+  <div class="dz-modal" id="dz-modal" role="dialog" aria-modal="true" aria-labelledby="dz-modal-name" hidden>
+    <div class="dz-modal__card">
+      <button class="dz-modal__close" type="button" aria-label="关闭">×</button>
+      <img class="dz-modal__photo" src="{{ 'images/avatar.jpg' | url }}" alt="张夏浪" width="200" height="200">
+      <h2 class="dz-modal__name" id="dz-modal-name">张夏浪</h2>
+      <p class="dz-modal__role">数据仓库开发 · 杭州 · 正在学习大模型与 Agent</p>
+      <ul class="dz-modal__tags">
+        <li>投放归因 / ROI</li><li>留存 LTV</li><li>StarRocks</li><li>LangGraph</li><li>Text2SQL</li>
+      </ul>
+      <div class="dz-modal__actions">
+        <a class="dz-btn dz-btn--primary" href="#about">查看完整介绍</a>
+        <a class="dz-btn" href="https://github.com/chinazhangxialang-code" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {#- 不让 Material 自动补一个页面标题 h1，首屏里已经有标题了 -#}

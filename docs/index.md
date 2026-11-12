@@ -38,7 +38,7 @@ hide:
 
 ---
 
-## 关于我
+## 关于我 {#about}
 
 ![张夏浪](images/avatar.jpg){ width="140" align=right style="border-radius:6px; margin-left:16px" }
 

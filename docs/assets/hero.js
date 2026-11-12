@@ -160,3 +160,29 @@
   if (reduceMotion) step();   // 系统开了"减少动态效果"就只画一帧静态图
   else loop();
 })();
+
+// ---------- 点击头像弹出个人卡片 ----------
+(function () {
+  "use strict";
+  const btn = document.getElementById("dz-avatar-btn");
+  const modal = document.getElementById("dz-modal");
+  if (!btn || !modal) return;
+
+  const open = () => {
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";            // 弹窗打开时页面不滚动
+    modal.querySelector(".dz-modal__close").focus();
+  };
+  const close = () => {
+    modal.hidden = true;
+    document.body.style.overflow = "";
+    btn.focus();
+  };
+
+  btn.addEventListener("click", open);
+  modal.querySelector(".dz-modal__close").addEventListener("click", close);
+  modal.addEventListener("click", (e) => { if (e.target === modal) close(); });   // 点卡片外面的遮罩关闭
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) close(); });
+  // 点"查看完整介绍"跳到下面的关于我，同时关掉弹窗
+  modal.querySelector('a[href="#about"]').addEventListener("click", close);
+})();

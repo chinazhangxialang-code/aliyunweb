@@ -1,0 +1,64 @@
+site_name: 夏浪同学的知识库
+site_url: https://myzhangxialang.cn/
+site_description: 数据仓库开发，正在学习大模型与 Agent 开发
+site_author: 张夏浪
+repo_url: https://github.com/chinazhangxialang-code
+repo_name: GitHub
+
+theme:
+  name: material
+  custom_dir: overrides      # 首页模板 home.html 放在这里
+  language: zh
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-night
+        name: 切换到深色模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: 切换到浅色模式
+
+nav:
+  - 首页: index.md
+  - 数仓成果: data-warehouse.md
+  - 大模型学习:
+      - 学习路线: llm/learning.md
+      - 基础概念: llm/basics.md
+      - 检索与 RAG: llm/rag.md
+      - Agent 与工作流: llm/agent.md
+      - 工程落地：Text2SQL 智能问数: llm/text2sql.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_css:
+  - assets/timeline.css      # 学习路线里程碑时间轴
+extra_javascript:
+  - assets/timeline.js

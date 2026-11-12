@@ -1,0 +1,41 @@
+{#- 首页专用模板：在 MkDocs Material 的 main.html 基础上，加一块全宽的动画首屏。
+    只有 front matter 写了 template: home.html 的页面（也就是 index.md）会用它，其他页面不受影响。 -#}
+{% extends "main.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ 'assets/hero.css' | url }}">
+{% endblock %}
+
+{% block tabs %}
+  {{ super() }}
+  <section class="dz-hero" aria-label="首屏">
+    <canvas id="dz-canvas" aria-hidden="true"></canvas>
+    <div class="dz-hero__inner">
+      <p class="dz-hero__eyebrow">DATA WAREHOUSE × LLM AGENT</p>
+      <h1 class="dz-hero__title">用数仓工程师的方式<br><span class="dz-grad">学大模型</span></h1>
+      <p class="dz-hero__typed"><span id="dz-typed"></span><span class="dz-caret">|</span></p>
+      <div class="dz-hero__actions">
+        <a class="dz-btn dz-btn--primary" href="{{ 'llm/text2sql/' | url }}">从这里开始：Text2SQL 智能问数 →</a>
+        <a class="dz-btn" href="{{ 'data-warehouse/' | url }}">看数仓成果</a>
+      </div>
+      <ul class="dz-hero__stats">
+        <li><b>12</b><span>LangGraph 节点</span></li>
+        <li><b>3</b><span>路并行召回</span></li>
+        <li><b>60%</b><span>下游查询耗时下降</span></li>
+      </ul>
+    </div>
+    <a class="dz-scroll" href="#dz-content" aria-label="向下滚动">SCROLL ↓</a>
+  </section>
+{% endblock %}
+
+{#- 不让 Material 自动补一个页面标题 h1，首屏里已经有标题了 -#}
+{% block content %}
+  <div id="dz-content"></div>
+  {{ page.content }}
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ 'assets/hero.js' | url }}"></script>
+{% endblock %}

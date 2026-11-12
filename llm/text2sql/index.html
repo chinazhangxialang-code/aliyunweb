@@ -1,0 +1,1432 @@
+
+<!doctype html>
+<html lang="zh" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="数据仓库开发，正在学习大模型与 Agent 开发">
+      
+      
+        <meta name="author" content="张夏浪">
+      
+      
+        <link rel="canonical" href="https://myzhangxialang.cn/llm/text2sql/">
+      
+      
+        <link rel="prev" href="../agent/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>工程落地：Text2SQL 智能问数 - 夏浪同学的知识库</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/timeline.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#text2sql-agent" class="md-skip">
+          跳转至
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="页眉">
+    <a href="../.." title="夏浪同学的知识库" class="md-header__button md-logo" aria-label="夏浪同学的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            夏浪同学的知识库
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              工程落地：Text2SQL 智能问数
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到深色模式"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="切换到深色模式" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="切换到浅色模式"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="切换到浅色模式" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="搜索" placeholder="搜索" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="查找">
+        
+        <button type="reset" class="md-search__icon md-icon" title="清空当前内容" aria-label="清空当前内容" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            正在初始化搜索引擎
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/chinazhangxialang-code" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="标签" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  首页
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../data-warehouse/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  数仓成果
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../learning/" class="md-tabs__link">
+          
+  
+  
+  大模型学习
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="夏浪同学的知识库" class="md-nav__button md-logo" aria-label="夏浪同学的知识库" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    夏浪同学的知识库
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/chinazhangxialang-code" title="前往仓库" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    首页
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data-warehouse/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    数仓成果
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    大模型学习
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    大模型学习
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../learning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    学习路线
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    基础概念
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rag/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    检索与 RAG
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../agent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent 与工作流
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工程落地：Text2SQL 智能问数
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    工程落地：Text2SQL 智能问数
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、项目一句话
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、要解决的问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、技术栈
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四、整体架构：三条链路首尾相接
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        五、链路逐层拆解（每一层：问题 → 做法 → 产出 → 交给下一层）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="五、链路逐层拆解（每一层：问题 → 做法 → 产出 → 交给下一层）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        链路①：离线构建元数据知识库
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2langgraph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        链路②：在线问数（LangGraph 工作流）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        链路③：服务化（FastAPI）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        六、已知局限与演进方向
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="六、已知局限与演进方向">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        元数据设计的演进方案（表从 5 张扩展到上千张时）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        一、项目一句话
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        二、要解决的问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        三、技术栈
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        四、整体架构：三条链路首尾相接
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        五、链路逐层拆解（每一层：问题 → 做法 → 产出 → 交给下一层）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="五、链路逐层拆解（每一层：问题 → 做法 → 产出 → 交给下一层）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        链路①：离线构建元数据知识库
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2langgraph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        链路②：在线问数（LangGraph 工作流）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        链路③：服务化（FastAPI）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        六、已知局限与演进方向
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="六、已知局限与演进方向">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        元数据设计的演进方案（表从 5 张扩展到上千张时）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="text2sql-agent">项目：Text2SQL 智能问数 Agent<a class="headerlink" href="#text2sql-agent" title="Permanent link">&para;</a></h1>
+<p><strong>技术栈</strong>：LangGraph、LangChain、qwen-plus、bge-large-zh-v1.5（TEI）、Qdrant、Elasticsearch（IK）、MySQL、SQLAlchemy、FastAPI、Docker Compose</p>
+<h2 id="_1">一、项目一句话<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>业务人员用自然语言提问（例如"统计华北地区的销售总额"），系统自动找到相关的表、字段、指标和维度取值，生成 MySQL SQL，校验通过后执行，并把每一步进度和最终结果以流式方式返回给前端。</p>
+<h2 id="_2">二、要解决的问题<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>大模型直接写 SQL 有三个根本困难，本项目的每个设计都对应其中一个：</p>
+<table>
+<thead>
+<tr>
+<th>困难</th>
+<th>具体表现</th>
+<th>本项目的对应设计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>大模型不知道库里有什么</td>
+<td>不知道表名、字段名，会编造不存在的字段</td>
+<td>离线构建元数据知识库，在线按问题检索</td>
+</tr>
+<tr>
+<td>用户说法和字段名不一致</td>
+<td>用户说"销售额"，字段叫 <code>order_amount</code>；用户说"华北"，要落到 <code>region_name='华北'</code></td>
+<td>字段用向量语义检索，取值用全文精确检索，关键词用大模型扩展同义词</td>
+</tr>
+<tr>
+<td>生成的 SQL 可能是错的</td>
+<td>语法错、字段错，执行直接报错</td>
+<td>EXPLAIN 校验，失败后大模型纠错并重新校验，最多 3 次</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">三、技术栈<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>技术</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent 编排</td>
+<td>LangGraph（StateGraph + Runtime Context）</td>
+<td>把问数流程编排成有并行、有条件分支、有循环的图</td>
+</tr>
+<tr>
+<td>大模型</td>
+<td>qwen-plus（OpenAI 兼容接口，LangChain ChatOpenAI）</td>
+<td>扩展关键词、过滤表和指标、生成 SQL、纠错</td>
+</tr>
+<tr>
+<td>向量化</td>
+<td>本地 TEI 部署 bge-large-zh-v1.5（1024 维）</td>
+<td>把字段名、描述、别名、指标转成向量</td>
+</tr>
+<tr>
+<td>向量库</td>
+<td>Qdrant（data-agent-column、data-agent-metric 两个集合，Cosine）</td>
+<td>字段和指标的语义检索</td>
+</tr>
+<tr>
+<td>全文检索</td>
+<td>Elasticsearch + IK 中文分词（data-agent-value 索引）</td>
+<td>维度字段真实取值的精确检索</td>
+</tr>
+<tr>
+<td>元数据库</td>
+<td>MySQL meta 库（table_info / column_info / metric_info / column_metric）</td>
+<td>存表、字段、主外键、指标与字段的关系</td>
+</tr>
+<tr>
+<td>业务库</td>
+<td>MySQL dw 库（星型模型：fact_order + dim_region / dim_customer / dim_product / dim_date）</td>
+<td>被查询的数据</td>
+</tr>
+<tr>
+<td>服务</td>
+<td>FastAPI（lifespan + Depends + ASGI 中间件 + SSE 流式）</td>
+<td>对外提供 <code>/api/query</code> 接口</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>SQLAlchemy 异步、jieba、loguru、OmegaConf、Docker Compose</td>
+<td>数据库访问、分词、日志、配置、部署依赖服务</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_4">四、整体架构：三条链路首尾相接<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph 离线链路["① 离线：构建元数据知识库"]
+        Y[meta_config.yaml&lt;br/&gt;表/字段/别名/指标口径] --&gt; B[build_meta_knowledge]
+        DW1[(dw 库)] --&gt;|字段类型/示例值/维度取值| B
+        B --&gt; M[(MySQL meta)]
+        B --&gt; QC[(Qdrant 字段集合)]
+        B --&gt; QM[(Qdrant 指标集合)]
+        B --&gt; ES[(ES 取值索引)]
+    end
+    subgraph 在线链路["② 在线：LangGraph 问数"]
+        Q[用户问题] --&gt; K[抽关键词] --&gt; R1[召回字段] &amp; R2[召回指标] &amp; R3[召回取值]
+        R1 &amp; R2 &amp; R3 --&gt; MG[合并召回] --&gt; F1[过滤表] &amp; F2[过滤指标]
+        F1 &amp; F2 --&gt; C[补充上下文] --&gt; G[生成SQL] --&gt; V{校验SQL}
+        V --&gt;|失败且重试&lt;3| CS[纠错SQL] --&gt; V
+        V --&gt;|通过| E[执行SQL]
+    end
+    subgraph 服务链路["③ 服务：FastAPI"]
+        H[HTTP 请求] --&gt; MW[请求ID中间件] --&gt; DI[依赖注入组装context] --&gt; GR[跑图] --&gt; SSE[SSE流式返回]
+    end
+    QC &amp; QM &amp; ES &amp; M -.在线检索.-&gt; 在线链路
+    DW1 -.EXPLAIN/执行.-&gt; 在线链路
+    服务链路 -.调用.-&gt; 在线链路</code></pre>
+<p>三条链路的关系：</p>
+<ul>
+<li>离线链路的产出（meta 库、Qdrant、ES）就是在线链路检索的输入。</li>
+<li>在线链路需要的依赖（Repository、客户端），由服务链路的生命周期和依赖注入负责创建和释放。</li>
+<li>服务链路给每个请求打上请求 ID，在线链路每个节点的日志都带上这个 ID，出问题时能从一次请求追溯到具体哪一个节点。</li>
+</ul>
+<hr />
+<h2 id="_5">五、链路逐层拆解（每一层：问题 → 做法 → 产出 → 交给下一层）<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<h3 id="1">链路①：离线构建元数据知识库<a class="headerlink" href="#1" title="Permanent link">&para;</a></h3>
+<p><strong>问题</strong>：大模型要写对 SQL，先得知道"有哪些表、字段叫什么、业务上怎么称呼、指标怎么算、维度有哪些取值"。这些信息分散在数据库结构和人的脑子里。</p>
+<p><strong>做法</strong>：</p>
+<ol>
+<li>用 <code>meta_config.yaml</code> 声明元数据：表和字段的角色（primary_key / foreign_key / dimension / measure）、业务描述、别名（如 <code>order_amount</code> 的别名是"销售额、订单金额、收入"），以及指标口径（GMV、AOV 及其关联字段 <code>relevant_columns</code>）。</li>
+<li>构建脚本连 dw 库，自动补全字段类型和示例值。</li>
+<li>按用途写入三种存储：</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>存储</th>
+<th>存什么</th>
+<th>为什么用它</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MySQL meta</td>
+<td>表、字段、主外键、指标与字段的关系</td>
+<td>结构化信息，需要按 id 精确查询（合并召回时补主外键要用）</td>
+</tr>
+<tr>
+<td>Qdrant</td>
+<td>字段的"名称 / 描述 / 每个别名"各存一个向量点，指标同理</td>
+<td>用户说法和字段名不一致，需要语义相似度匹配</td>
+</tr>
+<tr>
+<td>ES</td>
+<td>维度字段的真实取值（如 region_name 的"华北"），只同步配置为 <code>sync: true</code> 的字段</td>
+<td>取值必须精确匹配，见下文实测</td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键设计：取值为什么不用向量，而用 ES</strong></p>
+<p>我用本地 bge 模型实测了几组取值的相似度：北京和南京 0.741，北京和天津 0.699，Mate60 和 Mate70 0.772。检索阈值是 0.6，这些全部会被误召回。而 WHERE 条件里的值错一个字结果就全错，所以取值必须走 ES 的分词精确检索。字段名则相反，需要"销售额能匹配到 order_amount"这种模糊能力，所以走向量。两者是分工协作，不是二选一。</p>
+<p><strong>关键设计：构建脚本必须能重复运行（幂等）</strong></p>
+<ul>
+<li>踩坑：Qdrant 的点 id 最初用 <code>uuid4</code>，每跑一次随机生成一批新 id，旧数据覆盖不掉。脚本跑了 4 次后，字段集合从 98 个点累积到 400 个点，同一个字段在检索结果里重复出现。</li>
+<li>解决：id 改成 <code>uuid5(NAMESPACE_DNS, f"{字段id}:{文本}")</code>，同样的输入永远得到同样的 id，重跑就是覆盖；MySQL 写入从 <code>add_all</code> 改成 <code>session.merge</code>（有则更新、无则插入）；ES 文档 <code>_id</code> 固定为"表.字段.值"。</li>
+<li>结果：连续跑两次，MySQL（table_info 5、column_info 24、metric_info 2、column_metric 2）、Qdrant（字段 98、指标 8）、ES（75）计数完全一致。</li>
+</ul>
+<p><strong>产出 → 交给链路②</strong>：一个可检索、可重复构建的元数据知识库。</p>
+<h3 id="2langgraph">链路②：在线问数（LangGraph 工作流）<a class="headerlink" href="#2langgraph" title="Permanent link">&para;</a></h3>
+<p><strong>问题</strong>：拿到用户问题后，要从知识库里找出"刚好够用"的上下文交给大模型。给多了会超长、干扰模型；给少了会缺字段写不出来。</p>
+<p><strong>做法：12 个节点，按"召回 → 合并 → 精筛 → 生成 → 校验"组织</strong></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>节点</th>
+<th>做什么</th>
+<th>为什么这样设计</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>抽取</td>
+<td>extract_keywords</td>
+<td>jieba 按词性抽关键词，并把原问题本身也作为一个关键词</td>
+<td>原问题保留整体语义，关键词保留局部信息，两者互补</td>
+</tr>
+<tr>
+<td>召回（3 路并行）</td>
+<td>recall_column</td>
+<td>大模型扩展同义词后查 Qdrant 字段集合</td>
+<td>"销售总额"扩展出"销售金额"，提高召回率</td>
+</tr>
+<tr>
+<td></td>
+<td>recall_metric</td>
+<td>同上，查 Qdrant 指标集合</td>
+<td>召回 GMV 这类有固定口径的指标</td>
+</tr>
+<tr>
+<td></td>
+<td>recall_value</td>
+<td>同上，查 ES 取值索引</td>
+<td>"华北"命中 <code>dim_region.region_name.华北</code></td>
+</tr>
+<tr>
+<td>合并</td>
+<td>merge_retrieved_info</td>
+<td>把指标的关联字段、取值所属字段并入字段列表，按表分组，再从 meta 库补上每张表的主外键</td>
+<td>召回不一定召回到关联字段，不补主外键大模型就不知道怎么 JOIN</td>
+</tr>
+<tr>
+<td>精筛（2 路并行）</td>
+<td>filter_table / filter_metric</td>
+<td>大模型从合并结果里剔除无关的表和指标</td>
+<td>召回追求"全"，精筛追求"准"，减少噪声</td>
+</tr>
+<tr>
+<td>补充</td>
+<td>add_extra_context</td>
+<td>补数据库方言和版本、当前日期、星期、季度</td>
+<td>处理"上个月""本季度"这类相对时间，按 MySQL 方言写函数</td>
+</tr>
+<tr>
+<td>生成</td>
+<td>generate_sql</td>
+<td>大模型根据精简后的上下文生成 SQL</td>
+<td></td>
+</tr>
+<tr>
+<td>校验</td>
+<td>validate_sql</td>
+<td>在 dw 库执行 <code>EXPLAIN</code></td>
+<td>不真正取数，只检查语法、表和字段是否存在</td>
+</tr>
+<tr>
+<td>纠错</td>
+<td>correct_sql</td>
+<td>把报错信息交给大模型改 SQL，重试次数加 1</td>
+<td></td>
+</tr>
+<tr>
+<td>执行</td>
+<td>execute_sql</td>
+<td>执行并返回结果</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>关键设计：校验-纠错闭环</strong></p>
+<ul>
+<li>原始写法是"纠错后直接执行"，改出来的 SQL 不再校验，大模型改错了就在执行阶段报错。</li>
+<li>我改成 <code>correct_sql → validate_sql</code> 的回边，用一个命名路由函数 <code>route_after_validate</code> 做三路分支：通过就执行，失败且重试次数小于 3 就纠错，达到 3 次就结束，避免无限循环。重试次数作为状态字段 <code>retry_count</code> 在图里传递。</li>
+</ul>
+<p><strong>关键设计：并行节点和依赖管理</strong></p>
+<ul>
+<li>三路召回在同一个超步（super-step）里并行执行，总耗时取最慢的一路，不是三路相加。</li>
+<li>踩坑：只给了 recall_column 需要的依赖，没给 recall_value 需要的 ES 仓库，结果 recall_value 报 <code>KeyError</code>，同一超步里的 recall_column 也一起失败，看起来像是 recall_column 有问题。这让我明确了 LangGraph 的规则：同一超步内任一节点失败，整个超步失败。</li>
+<li>踩坑：recall_metric 误用了字段仓库，查回来的是 <code>ColumnInfo</code>，到 merge 节点读 <code>.relevant_columns</code> 才报错。错误发生的位置和暴露的位置隔了一个节点。修正后改为查指标集合，召回结果从字段 id 变成了真正的指标 <code>['GMV', 'AOV']</code>。</li>
+<li>所以把所有外部依赖统一声明在 <code>DataAgentContext</code>（TypedDict）里，通过 LangGraph 的 <code>context_schema</code> 在运行时注入，节点用 <code>runtime.context[...]</code> 取。节点本身不创建连接，方便测试和替换。</li>
+</ul>
+<p><strong>实测结果</strong>："统计华北地区的销售总额"走完全链路，生成 <code>dim_region JOIN fact_order ON region_id WHERE region_name='华北'</code> 的 <code>SUM(order_amount)</code>，结果 41099.5。</p>
+<p><strong>产出 → 交给链路③</strong>：一个可编译、可流式运行的图对象 <code>graph</code>，以及它需要的依赖清单 <code>DataAgentContext</code>。</p>
+<h3 id="3fastapi">链路③：服务化（FastAPI）<a class="headerlink" href="#3fastapi" title="Permanent link">&para;</a></h3>
+<p><strong>问题</strong>：链路②需要 6 个依赖（Embedding、两个 Qdrant 仓库、ES 仓库、meta 和 dw 两个 MySQL 仓库）。在测试脚本里是手动 init、手动拼装、手动 close，搬到 Web 服务里会遇到三个问题：每个请求都重建连接池太慢；一个请求 close 会关掉另一个请求正在用的连接；session 不能被多个请求共用。</p>
+<p><strong>做法：按"生命周期长短"把对象分两类管理</strong></p>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>对象</th>
+<th>谁管理</th>
+<th>生命周期</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>进程级</td>
+<td>MySQL 连接池、Qdrant / ES / Embedding 客户端</td>
+<td><code>api/lifespan.py</code>（yield 之前 init，之后在 finally 里 close）</td>
+<td>服务启动到关闭，只建一次，所有请求共用</td>
+</tr>
+<tr>
+<td>请求级</td>
+<td>MySQL AsyncSession、各个 Repository、<code>DataAgentContext</code></td>
+<td><code>api/dependencies.py</code>（yield 依赖 + Depends 链）</td>
+<td>一个请求一份，响应发完后自动归还连接池</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>路由里只写 <code>context = Depends(get_data_agent_context)</code>，FastAPI 按依赖链依次创建 session、Repository、context。</li>
+<li>流式响应的关键点：当前 FastAPI 版本中，yield 依赖的清理代码在流式响应全部发送完之后才执行，所以图在 <code>StreamingResponse</code> 里跑的整个过程中 session 都可用。最后一个节点 execute_sql 用 session 查库成功，证明了这一点。</li>
+</ul>
+<p><strong>流式返回（SSE）</strong>：用 <code>graph.astream(stream_mode="custom")</code> 接收节点里 <code>runtime.stream_writer</code> 写出的进度，每条转成 <code>data: {...}\n\n</code> 推给前端。用户能实时看到"召回字段 running → success → 生成SQL → 执行SQL → 结果"。流开始后 HTTP 状态码已经无法修改，所以异常也作为一条 <code>{"type":"error"}</code> 消息推送，而不是抛出。</p>
+<p><strong>可观测性：请求 ID 贯穿全链路</strong></p>
+<ul>
+<li>用纯 ASGI 写了 <code>RequestIDMiddleware</code>：请求头带了合法的 <code>X-Request-ID</code> 就沿用，否则生成 uuid；写入 <code>ContextVar</code>，并在响应头返回。外部传入的 ID 用正则校验（字母、数字、<code>-</code>、<code>_</code>，最长 64），防止注入换行伪造日志。</li>
+<li>loguru 配置 <code>patcher</code>，每条日志输出前自动从 ContextVar 读取请求 ID，业务代码一行不改。LangGraph 起的子任务会继承上下文，所以图里每个节点的日志都带上了同一个 ID。</li>
+<li>为什么不用 <code>@app.middleware("http")</code>：那种写法下 <code>call_next</code> 在流刚开始时就返回了，"请求结束"日志和耗时会提前记录。纯 ASGI 写法要等最后一段数据发完才记，实测记录的总耗时是 9667ms，是真实值。</li>
+</ul>
+<p><strong>产出 → 回到起点</strong>：每次问数都有一个请求 ID，日志里能看到这次请求召回了哪些字段和取值、生成了什么 SQL、校验了几次。这些日志正是判断离线链路①的元数据（别名、描述、取值同步范围）是否需要补充的依据。比如某个问题召回不到字段，就回到 yaml 补别名，重新构建。三条链路由此形成闭环。</p>
+<hr />
+<h2 id="_6">六、已知局限与演进方向<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>局限</th>
+<th>原因</th>
+<th>演进方案</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>还没有准确率评测</td>
+<td>目前只验证了单个问题跑通</td>
+<td>建 30~50 个"问题 + 标准答案"的评测集，每次改动后回归</td>
+</tr>
+<tr>
+<td>EXPLAIN 只能保证"能跑"，不能保证"算对"</td>
+<td>口径错、JOIN 错不会报语法错误</td>
+<td>引入语义层（指标层）：大模型只选指标、维度、过滤条件，SQL 由程序按预定义口径确定性生成；现有 NL2SQL 图作为兜底</td>
+</tr>
+<tr>
+<td>SQL 由大模型自由生成，口径可能不一致</td>
+<td>GMV 每次可能被理解成不同算法</td>
+<td>同上，口径固化在 metric_info 里由程序使用</td>
+</tr>
+<tr>
+<td>缺少示例 SQL</td>
+<td>公司内部特有写法大模型不知道</td>
+<td>加"问题-SQL"样例库，生成前按相似度检索做 few-shot</td>
+</tr>
+<tr>
+<td>删除不同步</td>
+<td><code>merge</code> 只增改不删，yaml 删掉的字段库里还在</td>
+<td>构建时对比差集删除，或按版本全量重建</td>
+</tr>
+<tr>
+<td>无鉴权、无表级权限</td>
+<td>课程项目阶段</td>
+<td>只读账号、强制 LIMIT、接口鉴权、按用户做表级权限</td>
+</tr>
+<tr>
+<td>复杂分析类问题（如"GMV 为什么下降"）答不了</td>
+<td>固定工作流只做单次取数</td>
+<td>用 Deep Agent 做规划和多步分析，把当前图包装成取数工具供其调用</td>
+</tr>
+</tbody>
+</table>
+<p><strong>为什么当前选固定工作流而不是自主 Agent（Deep Agent）</strong>：Text2SQL 的步骤是确定的，要求结果稳定、可复现、可调试。固定工作流每次走同一条路，成本低、出错能定位到具体节点；自主 Agent 每次要多轮规划，更慢更贵，结果也不稳定。自主 Agent 的价值在多步分析层，不在单次取数层。</p>
+<h3 id="5">元数据设计的演进方案（表从 5 张扩展到上千张时）<a class="headerlink" href="#5" title="Permanent link">&para;</a></h3>
+<p>当前设计是"人工写 yaml → 构建脚本写入 MySQL、Qdrant、ES"。它的优点是业务语义由人明确给出、可控，三类存储按访问方式分工也是对的；但放到真实数仓会遇到以下瓶颈：</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>具体表现</th>
+<th>在真实数仓里的后果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>全靠手写 yaml</td>
+<td>每张表、每个字段都要人写</td>
+<td>几千张表写不过来；业务库改了字段，yaml 不知道，元数据和真实表结构逐渐脱节</td>
+</tr>
+<tr>
+<td>缺少数仓特有元数据</td>
+<td>只有主键、外键、维度、度量四种角色</td>
+<td>没有分区字段、表粒度、全量快照还是增量、数据最新日期。大模型不知道要加 <code>dt</code> 过滤会扫全表，也分不清增量表和快照表的口径差别</td>
+</tr>
+<tr>
+<td>指标只有描述，没有算法</td>
+<td>GMV 只记了关联字段和一句描述</td>
+<td>怎么聚合、要不要剔除退款，仍由大模型临场发挥，口径不受控</td>
+</tr>
+<tr>
+<td>表关联关系没有显式记录</td>
+<td>只标了外键字段</td>
+<td>表一多，大模型可能选错关联路径，或者一对多关联导致数据放大</td>
+</tr>
+<tr>
+<td>三份存储没有一致性保障</td>
+<td>分开写入，<code>merge</code> 只增改不删</td>
+<td>中途失败三处不一致；yaml 删掉的字段检索时仍会被召回</td>
+</tr>
+<tr>
+<td>取值全量同步</td>
+<td>所有 <code>sync: true</code> 字段的每个取值都写入 ES</td>
+<td>客户名这类几百万个值的字段同步成本高，而且很快过时</td>
+</tr>
+</tbody>
+</table>
+<p>对应的改进方案：</p>
+<ol>
+<li><strong>元数据分两层</strong>：技术元数据（表名、字段名、类型、注释、分区字段、主键）从 information_schema、数据地图或建表语句注释中每天自动采集；业务元数据（别名、描述、指标口径、粒度说明）由人工维护，覆盖在技术层之上。yaml 只写机器采集不到的业务语义。</li>
+<li><strong>补充数仓特有元数据</strong>：每张表增加分区字段、粒度（如"设备 + 链接 + 天"）、装载方式（全量快照 / 增量）、更新频率、数据最新日期，生成 SQL 时作为硬性规则交给大模型，例如"查询这张表必须带 <code>dt</code> 条件"。</li>
+<li><strong>指标升级为语义层</strong>：指标写成完整定义，由程序生成 SQL，大模型只选指标、维度和筛选条件。思路与数仓的统一指标口径一致，可参考 dbt MetricFlow、Cube 的指标定义格式：</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GMV</span>
+<span class="w">  </span><span class="nt">expression</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SUM(fact_order.order_amount)</span>
+<span class="w">  </span><span class="nt">filters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">order_status = '已支付'</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">time_column</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dim_date.date_id</span>
+<span class="w">  </span><span class="nt">allowed_dimensions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">region_name</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">category</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">brand</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<ol>
+<li><strong>显式记录表关联关系</strong>：存储"<code>fact_order.region_id → dim_region.region_id</code>，多对一"这样的关系，生成 SQL 时按关系找关联路径；对一对多关联提示"先聚合再关联"，防止数据放大。</li>
+<li><strong>按版本号同步</strong>：每次构建生成一个版本号，三处存储写入时都带上它，全部写完后再删除旧版本数据。构建中途失败不影响线上，yaml 删掉的字段也能真正清理。</li>
+<li><strong>高基数字段在线查询</strong>：省份、品类这类取值少的字段继续同步到 ES；客户名这类取值多的字段改为召回时直接在业务库做模糊查询，或只同步高频值。</li>
+<li><strong>积累历史 SQL 样例库</strong>：把数据开发写过的真实 SQL、用户确认答对的问答存成"问题 + SQL"样例，生成时检索相似样例作为参考，体现公司内部的写法习惯。</li>
+</ol>
+<p>推荐优先级：</p>
+<table>
+<thead>
+<tr>
+<th>优先级</th>
+<th>改进</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>补数仓元数据（分区、粒度、装载方式）</td>
+<td>改动小，直接减少全表扫描和口径错误</td>
+</tr>
+<tr>
+<td>2</td>
+<td>指标改成完整定义，由程序生成 SQL</td>
+<td>解决口径不一致这个最根本的问题</td>
+</tr>
+<tr>
+<td>3</td>
+<td>技术元数据自动采集</td>
+<td>表多了以后非做不可</td>
+</tr>
+<tr>
+<td>4</td>
+<td>显式记录关联关系</td>
+<td>表多、关联复杂后价值才明显</td>
+</tr>
+<tr>
+<td>5</td>
+<td>版本号同步、高基数字段在线查询、历史 SQL 库</td>
+<td>偏工程完善，规模上来后再做</td>
+</tr>
+</tbody>
+</table>
+<p>当前只有 5 张表，手写 yaml 完全够用，以上方案属于规模扩大后的演进方向。</p>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  回到页面顶部
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../../assets/timeline.js"></script>
+      
+    
+  </body>
+</html>

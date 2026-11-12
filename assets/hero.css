@@ -21,6 +21,16 @@
   pointer-events: none;            /* 让鼠标能"穿过"文字和粒子互动 */
 }
 .dz-hero__inner a { pointer-events: auto; }
+.dz-hero__avatar {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.4rem;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 2px solid rgba(165, 180, 252, .55);
+  box-shadow: 0 0 28px rgba(99, 102, 241, .55);
+}
 .dz-hero__eyebrow {
   margin: 0 0 1rem;
   font-size: .75rem;
@@ -104,3 +114,76 @@
 @media (prefers-reduced-motion: reduce) {
   .dz-grad, .dz-caret, .dz-scroll { animation: none; }
 }
+
+/* ---------- 头像按钮 + 弹出的个人卡片 ---------- */
+.dz-hero__avatar-btn {
+  display: block;
+  margin: 0 auto 1.4rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;            /* 首屏文字层默认不接收点击，头像要单独打开 */
+  border-radius: 8px;
+  transition: transform .25s;
+}
+.dz-hero__avatar-btn:hover { transform: scale(1.06); }
+.dz-hero__avatar-btn:hover .dz-hero__avatar { box-shadow: 0 0 40px rgba(34, 211, 238, .75); }
+.dz-hero__avatar-btn:focus-visible { outline: 2px solid #22d3ee; outline-offset: 4px; }
+.dz-hero__avatar-btn .dz-hero__avatar { margin: 0; transition: box-shadow .25s; }
+
+.dz-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(4, 7, 20, .72);
+  backdrop-filter: blur(6px);
+  animation: dz-fade .25s ease;
+}
+.dz-modal[hidden] { display: none; }
+.dz-modal__card {
+  position: relative;
+  width: min(22rem, 100%);
+  padding: 2rem 1.6rem 1.6rem;
+  border-radius: 16px;
+  text-align: center;
+  color: #e6ecff;
+  background: linear-gradient(160deg, #141c45, #0b1230 60%, #0a2a38);
+  border: 1px solid rgba(165, 180, 252, .3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .5), 0 0 40px rgba(99, 102, 241, .35);
+  animation: dz-pop .3s cubic-bezier(.2, .9, .3, 1.2);
+}
+.dz-modal__close {
+  position: absolute;
+  top: .5rem; right: .8rem;
+  border: none; background: none;
+  color: #94a3d8; font-size: 1.6rem; line-height: 1;
+  cursor: pointer;
+}
+.dz-modal__close:hover { color: #fff; }
+.dz-modal__photo {
+  width: 200px; height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 2px solid rgba(165, 180, 252, .55);
+  box-shadow: 0 0 30px rgba(34, 211, 238, .45);
+}
+.dz-modal__name { margin: 1rem 0 .3rem !important; font-size: 1.4rem; font-weight: 800; color: #fff; }
+.dz-modal__role { margin: 0 0 1rem; font-size: .78rem; color: #b8c4ff; }
+.dz-modal__tags { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin: 0 0 1.4rem; padding: 0; list-style: none; }
+.dz-modal__tags li {
+  margin: 0;
+  padding: .15rem .6rem;
+  border-radius: 999px;
+  font-size: .68rem;
+  color: #7dd3fc;
+  background: rgba(34, 211, 238, .1);
+  border: 1px solid rgba(34, 211, 238, .3);
+}
+.dz-modal__actions { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+@keyframes dz-fade { from { opacity: 0; } }
+@keyframes dz-pop { from { opacity: 0; transform: scale(.85) translateY(12px); } }
+@media (prefers-reduced-motion: reduce) { .dz-modal, .dz-modal__card { animation: none; } }

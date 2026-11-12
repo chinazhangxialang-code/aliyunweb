@@ -83,7 +83,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#_1" class="md-skip">
+        <a href="#about" class="md-skip">
           跳转至
         </a>
       
@@ -292,6 +292,9 @@
   <section class="dz-hero" aria-label="首屏">
     <canvas id="dz-canvas" aria-hidden="true"></canvas>
     <div class="dz-hero__inner">
+      <button class="dz-hero__avatar-btn" type="button" id="dz-avatar-btn" aria-haspopup="dialog" title="点击查看个人介绍">
+        <img class="dz-hero__avatar" src="images/avatar.jpg" alt="张夏浪" width="120" height="120">
+      </button>
       <p class="dz-hero__eyebrow">DATA WAREHOUSE × LLM AGENT</p>
       <h1 class="dz-hero__title">用数仓工程师的方式<br><span class="dz-grad">学大模型</span></h1>
       <p class="dz-hero__typed"><span id="dz-typed"></span><span class="dz-caret">|</span></p>
@@ -306,7 +309,21 @@
       </ul>
     </div>
     <a class="dz-scroll" href="#dz-content" aria-label="向下滚动">SCROLL ↓</a>
-  </section>
+  </section><div class="dz-modal" id="dz-modal" role="dialog" aria-modal="true" aria-labelledby="dz-modal-name" hidden>
+    <div class="dz-modal__card">
+      <button class="dz-modal__close" type="button" aria-label="关闭">×</button>
+      <img class="dz-modal__photo" src="images/avatar.jpg" alt="张夏浪" width="200" height="200">
+      <h2 class="dz-modal__name" id="dz-modal-name">张夏浪</h2>
+      <p class="dz-modal__role">数据仓库开发 · 杭州 · 正在学习大模型与 Agent</p>
+      <ul class="dz-modal__tags">
+        <li>投放归因 / ROI</li><li>留存 LTV</li><li>StarRocks</li><li>LangGraph</li><li>Text2SQL</li>
+      </ul>
+      <div class="dz-modal__actions">
+        <a class="dz-btn dz-btn--primary" href="#about">查看完整介绍</a>
+        <a class="dz-btn" href="https://github.com/chinazhangxialang-code" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </div>
 
       <main class="md-main" data-md-component="main">
         <div class="md-main__inner md-grid">
@@ -412,7 +429,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#about" class="md-nav__link">
     <span class="md-ellipsis">
       
         关于我
@@ -424,7 +441,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         技能
@@ -435,7 +452,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         教育经历
@@ -446,7 +463,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         联系方式
@@ -722,7 +739,7 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#about" class="md-nav__link">
     <span class="md-ellipsis">
       
         关于我
@@ -734,7 +751,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
+  <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         技能
@@ -745,7 +762,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         教育经历
@@ -756,7 +773,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
         联系方式
@@ -810,11 +827,11 @@
 </ul>
 </div>
 <hr />
-<h2 id="_1">关于我<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<h2 id="about">关于我<a class="headerlink" href="#about" title="Permanent link">&para;</a></h2>
 <p><img align="right" alt="张夏浪" src="images/avatar.jpg" style="border-radius:6px; margin-left:16px" width="140" /></p>
 <p>你好，我是<strong>张夏浪</strong>，在杭州做数据仓库开发。</p>
 <p>目前在短剧行业做数仓，日常工作是投放归因和 ROI、留存与 LTV、会员和广告变现这些报表的建模与交付，以及数据链路的稳定性保障。最近在系统学习大模型和 Agent 开发，想把数仓里积累的元数据、指标口径和数据质量经验，用到"让业务直接用自然语言取数"这件事上。</p>
-<h3 id="_2">技能<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h3 id="_1">技能<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -853,7 +870,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="_3">教育经历<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<h3 id="_2">教育经历<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
@@ -870,7 +887,7 @@
 </tr>
 </tbody>
 </table>
-<h3 id="_4">联系方式<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<h3 id="_3">联系方式<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li>GitHub：<a href="https://github.com/chinazhangxialang-code">chinazhangxialang-code</a></li>
 </ul>

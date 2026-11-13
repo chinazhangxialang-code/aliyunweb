@@ -183,6 +183,4 @@
   modal.querySelector(".dz-modal__close").addEventListener("click", close);
   modal.addEventListener("click", (e) => { if (e.target === modal) close(); });   // 点卡片外面的遮罩关闭
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) close(); });
-  // 点"查看完整介绍"跳到下面的关于我，同时关掉弹窗
-  modal.querySelector('a[href="#about"]').addEventListener("click", close);
 })();

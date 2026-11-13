@@ -31,7 +31,6 @@ theme:
 
 nav:
   - 首页: index.md
-  - 数仓成果: data-warehouse.md
   - 大模型学习:
       - 学习路线: llm/learning.md
       - 基础概念: llm/basics.md

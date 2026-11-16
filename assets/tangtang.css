@@ -1,0 +1,119 @@
+/* "糖糖"页面样式，只在 tangtang.html 里加载 */
+.tt-stage {
+  position: relative;
+  min-height: 78vh;
+  margin: -0.8rem -0.8rem 0;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, .55), transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(255, 182, 214, .7), transparent 45%),
+    linear-gradient(160deg, #ffe4ef 0%, #ffc7de 45%, #ffb0cf 100%);
+  box-shadow: 0 10px 40px rgba(255, 105, 160, .25);
+}
+
+/* 中间的开场白 */
+.tt-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem;
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+}
+.tt-greet {
+  margin: 0;
+  min-height: 1.4em;
+  font-size: clamp(1.4rem, 4.2vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.4;
+  color: #e0457b;
+  text-shadow: 0 2px 0 #fff, 0 6px 18px rgba(224, 69, 123, .35);
+  letter-spacing: .04em;
+}
+.tt-greet::after {
+  content: "|";
+  margin-left: 2px;
+  color: #ff7aa8;
+  animation: tt-blink 1s steps(1) infinite;
+}
+.tt-greet.tt-done::after { content: ""; }
+@keyframes tt-blink { 50% { opacity: 0; } }
+.tt-hint {
+  margin: 1.2rem 0 0;
+  font-size: .8rem;
+  color: #c2527c;
+  opacity: 0;
+  transition: opacity 1s;
+}
+.tt-hint.tt-show { opacity: .85; }
+
+/* 随机弹出的温柔话 */
+.tt-bubbles { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.tt-bubble {
+  position: absolute;
+  max-width: 15rem;
+  padding: .6rem 1rem;
+  border-radius: 18px 18px 18px 4px;
+  font-size: .85rem;
+  line-height: 1.6;
+  color: #8a2d52;
+  background: rgba(255, 255, 255, .88);
+  border: 1.5px solid #ffc2d9;
+  box-shadow: 0 6px 18px rgba(255, 105, 160, .28);
+  transform: translate(-50%, -50%);
+  animation: tt-pop .7s cubic-bezier(.2, 1.6, .4, 1) both, tt-float 4s ease-in-out .7s infinite;
+}
+.tt-bubble::before { content: "💗 "; }
+.tt-bubble.tt-out { animation: tt-fade .6s ease forwards; }
+@keyframes tt-pop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+  60%  { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes tt-float {
+  50% { transform: translate(-50%, calc(-50% - 8px)); }
+}
+@keyframes tt-fade {
+  to { opacity: 0; transform: translate(-50%, calc(-50% - 30px)) scale(.9); }
+}
+
+/* 飘落的爱心 */
+.tt-hearts { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.tt-heart {
+  position: absolute;
+  top: -2rem;
+  color: #ff6fa0;
+  opacity: .75;
+  animation: tt-fall linear forwards;
+}
+@keyframes tt-fall {
+  to { transform: translateY(95vh) rotate(25deg); opacity: 0; }
+}
+/* 点击时冒出的小爱心 */
+.tt-burst {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  color: #ff4f8b;
+  font-size: 1.1rem;
+  animation: tt-burst .9s ease-out forwards;
+}
+@keyframes tt-burst {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(.6); }
+  to   { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.3); }
+}
+
+@media (max-width: 600px) {
+  .tt-stage { min-height: 82vh; margin: -0.6rem -0.4rem 0; }
+  .tt-bubble { max-width: 11rem; font-size: .78rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tt-bubble, .tt-heart, .tt-burst, .tt-greet::after { animation: none !important; }
+}

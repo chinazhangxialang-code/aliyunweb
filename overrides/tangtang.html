@@ -1,0 +1,23 @@
+{#- "糖糖"专属页：粉色背景 + 飘落的爱心 + 随机弹出的温柔话。只有 tangtang.md 用这个模板。 -#}
+{% extends "main.html" %}
+
+{% block extrahead %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ 'assets/tangtang.css' | url }}">
+{% endblock %}
+
+{% block content %}
+  <section class="tt-stage" id="tt-stage" aria-label="写给糖糖">
+    <div class="tt-hearts" id="tt-hearts" aria-hidden="true"></div>
+    <div class="tt-center">
+      <p class="tt-greet" id="tt-greet"></p>
+      <p class="tt-hint" id="tt-hint">点一点屏幕，会有更多悄悄话 ♡</p>
+    </div>
+    <div class="tt-bubbles" id="tt-bubbles" aria-live="polite"></div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script src="{{ 'assets/tangtang.js' | url }}"></script>
+{% endblock %}

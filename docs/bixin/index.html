@@ -5,34 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>比心 - 夏浪同学的知识库</title>
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #050008; }
-  body {
-    background: radial-gradient(ellipse at 50% 48%, #2c0620 0%, #110310 50%, #040006 100%);
-    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
-    touch-action: none;
-  }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; touch-action: none; }
   canvas { display: block; width: 100vw; height: 100vh; cursor: grab; }
   canvas:active { cursor: grabbing; }
   .hint {
-    position: fixed; left: 0; right: 0; bottom: 4vh;
+    position: fixed; left: 0; right: 0; bottom: 3.5vh;
     margin: 0; text-align: center; pointer-events: none;
-    font-size: .75rem; color: rgba(255, 190, 215, .55); letter-spacing: .12em;
-    animation: hint-fade 6s ease 4s forwards;
+    font-size: .72rem; color: rgba(255, 190, 215, .5); letter-spacing: .14em;
+    animation: hint-fade 5s ease 4s forwards;
   }
   @keyframes hint-fade { to { opacity: 0; } }
   .back {
     position: fixed; left: 1rem; top: 1rem; z-index: 2;
     padding: .35rem .8rem; border-radius: 999px;
-    font-size: .8rem; color: #ffd1e3; text-decoration: none;
-    border: 1px solid rgba(255, 150, 190, .35); background: rgba(255, 255, 255, .04);
-    opacity: .6; transition: opacity .2s, background .2s;
+    font-size: .78rem; color: #ffd1e3; text-decoration: none;
+    border: 1px solid rgba(255, 150, 190, .3); background: rgba(255, 255, 255, .03);
+    opacity: .45; transition: opacity .2s;
   }
-  .back:hover { opacity: 1; background: rgba(255, 255, 255, .12); }
+  .back:hover { opacity: 1; }
 </style>
 </head>
 <body>
 <a class="back" href="/">← 回首页</a>
-<p class="hint">拖动转动爱心 · 点一下让它炸开</p>
+<p class="hint">拖动可以转动 · 点一下让爱心轻轻散开</p>
 <canvas id="c"></canvas>
 
 <script>
@@ -41,6 +37,7 @@
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d");
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const rand = (a, b) => a + Math.random() * (b - a);
 
   let W = 0, H = 0, DPR = 1, SCALE = 1;
   function resize() {
@@ -48,99 +45,99 @@
     W = window.innerWidth; H = window.innerHeight;
     canvas.width = W * DPR; canvas.height = H * DPR;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    SCALE = Math.min(W, H) / 42;            // 心形坐标约 -17~17，留出边距
-    makeStars();
+    // 画面里要放下：上面的心 + 下面的粒子光盘
+    SCALE = Math.min(W / 80, H / 58);
   }
+  resize();
+  window.addEventListener("resize", resize);
 
-  const small = Math.min(window.innerWidth, window.innerHeight) < 600;
-  const HEART_N = small ? 3000 : 5200;
-  const DUST_N = small ? 500 : 900;
-  const rand = (a, b) => a + Math.random() * (b - a);
+  const small = Math.min(W, H) < 600;
+  const HEART_N = small ? 6500 : 11000;
+  const DISC_N = small ? 2200 : 4000;
+  const DRIP_MAX = small ? 260 : 520;
 
-  // ---------- 背景星空（2D，只闪烁不转动） ----------
-  let stars = [];
-  function makeStars() {
-    const n = Math.round((W * H) / 5000);
-    stars = [];
-    for (let i = 0; i < n; i++) {
-      stars.push({ x: Math.random() * W, y: Math.random() * H, r: rand(0.3, 1.1), tw: Math.random() * 6.28, sp: rand(0.5, 2) });
+  // 配色：浅粉为主，亮粉、淡紫、少量白和紫点缀（和参考图同一个色系）
+  const PALETTE = [
+    [255, 182, 193, 0.42],  // 浅粉
+    [255, 105, 180, 0.28],  // 亮粉
+    [220, 180, 220, 0.14],  // 淡粉紫
+    [255, 240, 245, 0.10],  // 近白
+    [186, 85, 211, 0.06],   // 淡紫
+  ];
+  function pickColor(weights) {
+    let r = Math.random(), acc = 0;
+    for (let i = 0; i < PALETTE.length; i++) {
+      acc += weights ? weights[i] : PALETTE[i][3];
+      if (r <= acc) return PALETTE[i];
     }
+    return PALETTE[0];
   }
+  const DISC_WEIGHTS = [0.22, 0.24, 0.22, 0.14, 0.18];   // 光盘里紫色更多
 
-  // ---------- 立体爱心颗粒 ----------
-  // 心形轮廓：x = 16 sin³t，y = 13cos t - 5cos 2t - 2cos 3t - cos 4t
-  // 按比例 s 缩放得到截面，再按 sqrt(1 - s²) 给 z 方向厚度，堆出"鼓起来"的立体心
-  function heartXY(t) {
-    const s = Math.sin(t);
-    return [16 * s * s * s, 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)];
+  // ---------- 立体爱心 ----------
+  // 用三维心形曲面方程：(x² + 9/4·z² + y² - 1)³ - x²·y³ - 9/80·z²·y³ = 0（y 朝上，z 是厚度）
+  // 在空间里随机撒点，只留下贴近曲面的点（外壳）和少量内部点，得到一颗饱满圆润的实心爱心
+  const HEART_Y = 9.5;        // 心浮在上方
+  const DISC_Y = -17;         // 光盘在下方
+  const HR = 10.5;            // 心的大小
+  function heartF(x, y, z) {
+    const a = x * x + 2.25 * z * z + y * y - 1;
+    return a * a * a - x * x * y * y * y - 0.1125 * z * z * y * y * y;
   }
   const heart = [];
-  for (let i = 0; i < HEART_N; i++) {
-    const t = Math.random() * Math.PI * 2;
-    const onSurface = Math.random() < 0.8;
-    const s = onSurface ? rand(0.93, 1) : Math.sqrt(Math.random());
-    const [hx, hy] = heartXY(t);
-    const depth = 7.5 * Math.sqrt(Math.max(0, 1 - s * s * 0.85));
-    const z = rand(-1, 1) * (onSurface ? 1 : 0.7) * depth;
-    // 开场：每个颗粒从远处随机位置飞过来聚成心
-    const u = rand(-1, 1), th = Math.random() * 6.28, R = rand(60, 110), k = Math.sqrt(1 - u * u);
+  while (heart.length < HEART_N) {
+    const x = rand(-1.3, 1.3), y = rand(-1.1, 1.4), z = rand(-0.8, 0.8);
+    const v = heartF(x, y, z);
+    const shell = v > -0.06 && v <= 0;
+    const inner = v <= -0.06 && Math.random() < 0.06;
+    if (!shell && !inner) continue;
+    const c = pickColor();
+    const u = rand(-1, 1), th = rand(0, 6.283), R = rand(55, 95), k = Math.sqrt(1 - u * u);
     heart.push({
-      tx: hx * s, ty: hy * s + 2, tz: z,                      // 目标位置
-      sx: R * k * Math.cos(th), sy: R * u, sz: R * k * Math.sin(th), // 起点
-      delay: Math.random() * 1.6,                             // 错开到达时间
-      ox: 0, oy: 0, oz: 0, vx: 0, vy: 0, vz: 0,               // 点击炸开时的偏移和速度
-      r: rand(0.55, 1.6),
-      hue: rand(-12, 14),                                     // 相对主色调的偏移
-      light: rand(60, 85),
-      tw: Math.random() * 6.28,
+      tx: x * HR, ty: y * HR + HEART_Y - 1, tz: z * HR,
+      sx: R * k * Math.cos(th), sy: R * u, sz: R * k * Math.sin(th),   // 开场从远处飘来
+      delay: Math.random() * 1.4,
+      ox: 0, oy: 0, oz: 0, vx: 0, vy: 0, vz: 0,
+      size: rand(0.65, 1.5), c, a: rand(0.65, 1), tw: rand(0, 6.283),
+    });
+  }
+  // 心下半部的颗粒，用来往下"滴落"
+  const lower = heart.filter((p) => p.ty < HEART_Y - 6);
+
+  // ---------- 下方旋转的粒子光盘 ----------
+  const disc = [];
+  for (let i = 0; i < DISC_N; i++) {
+    // 半径集中在中间一圈，内外逐渐稀疏，像一片星云
+    const g = (Math.random() + Math.random() + Math.random()) / 3;
+    const r = 4 + g * 30;
+    disc.push({
+      r, a: rand(0, 6.283), y: rand(-0.5, 0.5) * (1 - g * 0.5),
+      w: (0.0025 + 0.05 / r) * (Math.random() < 0.9 ? 1 : 0.6),  // 内圈转得快
+      size: rand(0.6, 1.5), c: pickColor(DISC_WEIGHTS), alpha: rand(0.35, 0.9), tw: rand(0, 6.283),
     });
   }
 
-  // 环绕的小颗粒：分布在球壳里，各自绕心漂浮
-  const dust = [];
-  for (let i = 0; i < DUST_N; i++) {
-    const u = rand(-1, 1), th = Math.random() * 6.28, rad = rand(20, 34), k = Math.sqrt(1 - u * u);
-    dust.push({
-      x: rad * k * Math.cos(th), y: rad * u, z: rad * k * Math.sin(th),
-      r: rand(0.35, 1.1), hue: rand(-40, 30),
-      sp: rand(0.3, 0.8) * (Math.random() < 0.5 ? -1 : 1), tw: Math.random() * 6.28,
-    });
+  // ---------- 从心底往下滴落的颗粒 ----------
+  const drips = [];
+  function spawnDrip(px, py, pz) {
+    drips.push({ x: px + rand(-0.6, 0.6), y: py, z: pz + rand(-0.6, 0.6), vx: rand(-0.015, 0.015), vy: rand(-0.02, 0), vz: rand(-0.015, 0.015),
+      size: rand(0.7, 1.5), c: pickColor() });
   }
 
-  // 心跳冲击波：每跳一下，从心里向外扩散一圈颗粒
-  const rings = [];
-  function spawnRing() {
-    const n = small ? 90 : 160;
-    const pts = [];
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * Math.PI * 2;
-      pts.push({ a, j: rand(-0.6, 0.6), r: rand(0.6, 1.3) });
-    }
-    rings.push({ pts, age: 0 });
-  }
-
-  // 上升的火花：从心的表面冒出来往上飘，慢慢熄灭
-  const sparks = [];
-  function spawnSpark() {
-    const p = heart[(Math.random() * heart.length) | 0];
-    sparks.push({ x: p.tx, y: p.ty, z: p.tz, vx: rand(-0.04, 0.04), vy: rand(0.05, 0.14), vz: rand(-0.04, 0.04), life: 1, r: rand(0.6, 1.4), hue: rand(-10, 20) });
-  }
-
-  // ---------- 交互：自动转 + 拖动（带惯性） + 点击炸开 ----------
-  let rotY = 0, rotX = -0.12, velY = 0.005, velX = 0;
+  // ---------- 交互 ----------
+  let rotY = 0, rotX = 0.32, velY = 0.004, velX = 0;
+  const AUTO = 0.004, TILT = 0.32;
   let dragging = false, lastX = 0, lastY = 0, downX = 0, downY = 0, downAt = 0;
-  const AUTO = 0.005;
   function down(x, y) { dragging = true; lastX = downX = x; lastY = downY = y; downAt = performance.now(); }
   function move(x, y) {
     if (!dragging) return;
-    velY = (x - lastX) * 0.005; velX = (y - lastY) * 0.005;
-    rotY += velY; rotX = Math.max(-1.2, Math.min(1.2, rotX + velX));
+    velY = (x - lastX) * 0.005; velX = (y - lastY) * 0.003;
+    rotY += velY; rotX = Math.max(0.05, Math.min(0.75, rotX + velX));
     lastX = x; lastY = y;
   }
   function up(x, y) {
     dragging = false;
-    // 位移很小、时间很短才算"点击"
-    if (performance.now() - downAt < 250 && Math.hypot(x - downX, y - downY) < 8) explode();
+    if (performance.now() - downAt < 250 && Math.hypot(x - downX, y - downY) < 8) scatter();
   }
   canvas.addEventListener("mousedown", (e) => down(e.clientX, e.clientY));
   window.addEventListener("mousemove", (e) => move(e.clientX, e.clientY));
@@ -149,141 +146,124 @@
   canvas.addEventListener("touchmove", (e) => { const t = e.touches[0]; move(t.clientX, t.clientY); }, { passive: true });
   canvas.addEventListener("touchend", (e) => { const t = e.changedTouches[0]; up(t.clientX, t.clientY); });
 
-  let excite = 0;
-  function explode() {
-    excite = 1;
+  // 点击：心轻轻散开再聚回来，同时多落下一阵"粒子雨"
+  let rain = 0;
+  function scatter() {
     for (const p of heart) {
-      const len = Math.hypot(p.tx, p.ty, p.tz) || 1;
-      const f = rand(0.6, 1.6);
-      p.vx += (p.tx / len) * f; p.vy += (p.ty / len) * f; p.vz += (p.tz / len) * f;
+      const dx = p.tx, dy = p.ty - HEART_Y, dz = p.tz, len = Math.hypot(dx, dy, dz) || 1;
+      const f = rand(0.25, 0.8);
+      p.vx += dx / len * f; p.vy += dy / len * f; p.vz += dz / len * f;
     }
-    spawnRing(); spawnRing();
+    rain = 1;
   }
 
-  // ---------- 投影 ----------
-  const FOV = 60;
+  // ---------- 投影：先绕 Y 轴转，再整体前倾 rotX，形成俯视角 ----------
+  const FOV = 90, CENTER_Y = -3;
   let cy = 1, sy = 0, cx = 1, sx = 0;
   function project(x, y, z) {
     const x1 = x * cy + z * sy, z1 = -x * sy + z * cy;
-    const y1 = y * cx - z1 * sx, z2 = y * sx + z1 * cx;
+    const yy = y - CENTER_Y;
+    const y1 = yy * cx - z1 * sx, z2 = yy * sx + z1 * cx;
     const f = FOV / (FOV + z2);
     return [W / 2 + x1 * f * SCALE, H / 2 - y1 * f * SCALE, f, z2];
   }
-  function dot(x, y, r, color) {
+  function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+  function pt(x, y, size, color) {
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fill();
+    ctx.fillRect(x - size / 2, y - size / 2, size, size);
   }
 
   // ---------- 主循环 ----------
   const easeOut = (t) => 1 - Math.pow(1 - t, 3);
-  let time = 0, lastBeatPh = 0;
-  resize();
-  window.addEventListener("resize", resize);
+  let time = 0;
 
   function frame() {
     time += 1 / 60;
     if (!dragging) {
-      velY += (AUTO - velY) * 0.02; velX *= 0.95;
-      rotY += velY; rotX += velX; rotX += (-0.12 - rotX) * 0.01;
+      velY += (AUTO - velY) * 0.02; velX *= 0.9;
+      rotY += velY; rotX += (TILT - rotX) * 0.01;
     }
     cy = Math.cos(rotY); sy = Math.sin(rotY); cx = Math.cos(rotX); sx = Math.sin(rotX);
-    excite *= 0.985;
+    rain *= 0.985;
 
-    // 主色调在粉、玫红、浅紫之间缓慢流动
-    const baseHue = 335 + Math.sin(time * 0.25) * 12;
+    // 呼吸感的轻微心跳
+    const ph = (time * 1.05) % 1;
+    const beat = Math.exp(-Math.pow((ph - 0.15) / 0.07, 2)) + 0.55 * Math.exp(-Math.pow((ph - 0.36) / 0.08, 2));
+    const pulse = reduceMotion ? 1 : 1 + beat * 0.045;
+    const intro = Math.min(1, time / 2.8);
+    const ps = SCALE / 13;   // 颗粒尺寸随屏幕缩放
 
-    // 心跳：两段式"扑通扑通"，每跳一次放出一圈冲击波
-    const beatSpeed = 1.15 + excite * 1.8;
-    const ph = (time * beatSpeed) % 1;
-    if (ph < lastBeatPh && time > 2.2) spawnRing();
-    lastBeatPh = ph;
-    const beat = Math.exp(-Math.pow((ph - 0.12) / 0.06, 2)) + 0.6 * Math.exp(-Math.pow((ph - 0.32) / 0.07, 2));
-    const pulse = reduceMotion ? 1 : 1 + beat * 0.08;
-    const intro = Math.min(1, time / 3);   // 开场聚合进度
-
-    // 半透明清屏，留下拖影
-    ctx.globalCompositeOperation = "source-over";
-    ctx.fillStyle = "rgba(5, 0, 8, 0.28)";
-    ctx.fillRect(0, 0, W, H);
-    ctx.globalCompositeOperation = "lighter";
-
-    // 背景星星
-    for (const s of stars) {
-      const a = 0.15 + 0.35 * Math.abs(Math.sin(time * s.sp + s.tw));
-      dot(s.x, s.y, s.r, `rgba(255, 210, 230, ${a})`);
-    }
-
-    // 中心柔光，跟着心跳一起变亮
-    const g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, SCALE * 20 * pulse);
-    g.addColorStop(0, `hsla(${baseHue}, 100%, 60%, ${0.16 + beat * 0.14})`);
-    g.addColorStop(1, "hsla(330, 100%, 50%, 0)");
-    ctx.fillStyle = g;
+    // 黑底，保留一点点拖影，让流动的颗粒有轻微拖尾
+    ctx.fillStyle = "rgba(0,0,0,0.42)";
     ctx.fillRect(0, 0, W, H);
 
-    // 爱心颗粒
-    const rs = SCALE / 11;
-    for (const p of heart) {
-      // 炸开后用弹簧拉回原位
-      p.vx += -p.ox * 0.02; p.vy += -p.oy * 0.02; p.vz += -p.oz * 0.02;
-      p.vx *= 0.94; p.vy *= 0.94; p.vz *= 0.94;
-      p.ox += p.vx; p.oy += p.vy; p.oz += p.vz;
+    // 光盘中心一点很淡的粉紫光，托住画面
+    const [gx, gy, gf] = project(0, DISC_Y, 0);
+    const glow = ctx.createRadialGradient(gx, gy, 0, gx, gy, 30 * SCALE * gf);
+    glow.addColorStop(0, "rgba(200, 90, 200, 0.10)");
+    glow.addColorStop(1, "rgba(200, 90, 200, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
 
-      let k = Math.max(0, Math.min(1, (time - p.delay) / 1.6));
-      k = reduceMotion ? 1 : easeOut(k);
-      const x = (p.sx + (p.tx * pulse - p.sx) * k) + p.ox;
-      const y = (p.sy + (p.ty * pulse - p.sy) * k) + p.oy;
-      const z = (p.sz + (p.tz * pulse - p.sz) * k) + p.oz;
+    // 1. 下方旋转光盘
+    for (const d of disc) {
+      d.a += reduceMotion ? 0 : d.w;
+      const x = Math.cos(d.a) * d.r, z = Math.sin(d.a) * d.r;
+      const y = DISC_Y + d.y + Math.sin(time * 0.8 + d.tw) * 0.15;
       const [qx, qy, f, qz] = project(x, y, z);
       if (f <= 0) continue;
-      const front = Math.max(0.15, Math.min(1, 0.55 - qz / 22));
-      const tw = 0.7 + 0.3 * Math.sin(time * 3 + p.tw);
-      dot(qx, qy, p.r * f * rs, `hsla(${baseHue + p.hue}, 95%, ${p.light}%, ${front * tw})`);
+      const tw = 0.65 + 0.35 * Math.sin(time * 2 + d.tw);
+      const depthFade = Math.max(0.35, Math.min(1, 0.75 - qz / 90));
+      pt(qx, qy, Math.max(0.7, d.size * f * ps), rgba(d.c, d.alpha * tw * depthFade * intro));
     }
 
-    // 心跳冲击波
-    for (let i = rings.length - 1; i >= 0; i--) {
-      const ring = rings[i];
-      ring.age += 1 / 60;
-      const t = ring.age / 1.6;
-      if (t >= 1) { rings.splice(i, 1); continue; }
-      const R = 14 + easeOut(t) * 26;
-      const a = (1 - t) * 0.8;
-      for (const pt of ring.pts) {
-        const rr = R + pt.j * 2;
-        const [qx, qy, f] = project(Math.cos(pt.a) * rr, Math.sin(pt.a) * rr + 1, pt.j * 3);
-        dot(qx, qy, pt.r * f * rs, `hsla(${baseHue + 10}, 100%, 75%, ${a})`);
+    // 2. 从心底滴落的颗粒
+    if (!reduceMotion && intro >= 1) {
+      const n = (small ? 2 : 4) + Math.round(rain * 8);
+      for (let i = 0; i < n && drips.length < DRIP_MAX + rain * 300; i++) {
+        const p = lower[(Math.random() * lower.length) | 0];
+        spawnDrip(p.tx * pulse, (p.ty - HEART_Y) * pulse + HEART_Y, p.tz * pulse);
       }
     }
-
-    // 上升的火花
-    if (intro >= 1 && !reduceMotion) for (let i = 0; i < (small ? 2 : 4); i++) spawnSpark();
-    for (let i = sparks.length - 1; i >= 0; i--) {
-      const s = sparks[i];
-      s.x += s.vx; s.y += s.vy; s.z += s.vz; s.life -= 0.012;
-      if (s.life <= 0) { sparks.splice(i, 1); continue; }
-      const [qx, qy, f] = project(s.x * pulse, s.y * pulse, s.z * pulse);
-      dot(qx, qy, s.r * f * rs, `hsla(${baseHue + s.hue}, 100%, 80%, ${s.life * 0.9})`);
+    for (let i = drips.length - 1; i >= 0; i--) {
+      const d = drips[i];
+      d.vy -= 0.0045; d.x += d.vx; d.y += d.vy; d.z += d.vz;
+      if (d.y <= DISC_Y + 0.3) {
+        // 落进光盘：变成光盘的一员，替换掉一个随机老颗粒，光盘就"越积越亮"
+        const k = (Math.random() * disc.length) | 0;
+        const r = Math.hypot(d.x, d.z);
+        disc[k].r = Math.max(4, r + rand(0, 6)); disc[k].a = Math.atan2(d.z, d.x); disc[k].c = d.c;
+        drips.splice(i, 1);
+        continue;
+      }
+      const [qx, qy, f] = project(d.x, d.y, d.z);
+      const fall = Math.min(1, (HEART_Y - d.y) / 30);
+      pt(qx, qy, Math.max(0.7, d.size * f * ps), rgba(d.c, 0.85 - fall * 0.35));
     }
 
-    // 环绕的小颗粒
-    for (const d of dust) {
-      const a0 = time * 0.15 * d.sp, ca = Math.cos(a0), sa = Math.sin(a0);
-      const [qx, qy, f] = project(d.x * ca + d.z * sa, d.y + Math.sin(time + d.tw) * 0.6, -d.x * sa + d.z * ca);
+    // 3. 立体爱心
+    for (const p of heart) {
+      p.vx += -p.ox * 0.018; p.vy += -p.oy * 0.018; p.vz += -p.oz * 0.018;
+      p.vx *= 0.93; p.vy *= 0.93; p.vz *= 0.93;
+      p.ox += p.vx; p.oy += p.vy; p.oz += p.vz;
+      let k = Math.max(0, Math.min(1, (time - p.delay) / 1.4));
+      k = reduceMotion ? 1 : easeOut(k);
+      const tx = p.tx * pulse, ty = (p.ty - HEART_Y) * pulse + HEART_Y, tz = p.tz * pulse;
+      const x = p.sx + (tx - p.sx) * k + p.ox;
+      const y = p.sy + (ty - p.sy) * k + p.oy;
+      const z = p.sz + (tz - p.sz) * k + p.oz;
+      const [qx, qy, f, qz] = project(x, y, z);
       if (f <= 0) continue;
-      const tw = 0.35 + 0.65 * Math.abs(Math.sin(time * 1.5 + d.tw));
-      dot(qx, qy, d.r * f * rs, `hsla(${baseHue + d.hue}, 90%, 75%, ${0.5 * tw * intro})`);
+      const front = Math.max(0.35, Math.min(1, 0.75 - qz / 30));   // 背面暗一些，立体感更强
+      const tw = 0.8 + 0.2 * Math.sin(time * 2.5 + p.tw);
+      pt(qx, qy, Math.max(0.7, p.size * f * ps), rgba(p.c, p.a * front * tw));
     }
 
     if (!reduceMotion) requestAnimationFrame(frame);
   }
 
-  if (reduceMotion) {
-    // 系统开了"减少动态效果"：直接画出聚好的静态爱心
-    time = 5; frame();
-  } else {
-    requestAnimationFrame(frame);
-  }
-  // 切到别的标签页时，浏览器会自动暂停 requestAnimationFrame，回来后接着跑
+  if (reduceMotion) { time = 5; frame(); }
+  else requestAnimationFrame(frame);
 })();
 </script>
 </body>

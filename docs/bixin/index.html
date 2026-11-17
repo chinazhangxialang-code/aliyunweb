@@ -24,11 +24,32 @@
     opacity: .45; transition: opacity .2s;
   }
   .back:hover { opacity: 1; }
+  /* 点一下弹出的土味情话 */
+  .love {
+    position: fixed; left: 50%; top: 9vh; z-index: 3;
+    width: min(86vw, 26rem); padding: .9rem 1.2rem 1rem;
+    border-radius: 18px; text-align: center; pointer-events: none;
+    color: #fff0f6; background: rgba(255, 105, 180, .14);
+    border: 1px solid rgba(255, 182, 193, .45);
+    box-shadow: 0 0 30px rgba(255, 105, 180, .35), inset 0 0 18px rgba(255, 182, 193, .12);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    opacity: 0; transform: translate(-50%, -12px) scale(.9);
+    transition: opacity .35s ease, transform .45s cubic-bezier(.2, 1.6, .4, 1);
+  }
+  .love.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  .love .q { margin: 0; font-size: .95rem; color: #ffd1e3; }
+  .love .a {
+    margin: .45rem 0 0; font-size: 1.15rem; font-weight: 700; color: #fff;
+    text-shadow: 0 0 12px #ff69b4;
+    opacity: 0; transform: translateY(6px); transition: opacity .4s ease, transform .4s ease;
+  }
+  .love .a.show { opacity: 1; transform: none; }
 </style>
 </head>
 <body>
 <a class="back" href="/">← 回首页</a>
-<p class="hint">拖动可以转动 · 点一下让爱心轻轻散开</p>
+<p class="hint">拖动可以转动 · 点一下有惊喜</p>
+<div class="love" id="love" aria-live="polite"><p class="q" id="loveQ"></p><p class="a" id="loveA"></p></div>
 <canvas id="c"></canvas>
 
 <script>
@@ -54,7 +75,7 @@
   const small = Math.min(W, H) < 600;
   const HEART_N = small ? 6500 : 11000;
   const DISC_N = small ? 2200 : 4000;
-  const DRIP_MAX = small ? 260 : 520;
+  const DRIP_MAX = small ? 600 : 1200;
 
   // 配色：浅粉为主，亮粉、淡紫、少量白和紫点缀（和参考图同一个色系）
   const PALETTE = [
@@ -146,7 +167,49 @@
   canvas.addEventListener("touchmove", (e) => { const t = e.touches[0]; move(t.clientX, t.clientY); }, { passive: true });
   canvas.addEventListener("touchend", (e) => { const t = e.changedTouches[0]; up(t.clientX, t.clientY); });
 
-  // 点击：心轻轻散开再聚回来，同时多落下一阵"粒子雨"
+  // 点击：心轻轻散开再聚回来，同时多落下一阵"粒子雨"，再弹出一句土味情话
+  // 土味情话：先问一句，停一下再出"答案"，笑点在后半句
+  const LINES = [
+    ["你知道我的缺点是什么吗？", "缺点你 😳"],
+    ["我觉得你今天有点怪", "怪好看的 💗"],
+    ["你是哪里人？", "你是我的心上人"],
+    ["我想买一块地", "你的死心塌地 🏡"],
+    ["你知道你和星星的区别吗？", "星星在天上，你在我心里 ✨"],
+    ["你属什么的？", "不管属什么，你属于我"],
+    ["最近手头有点紧", "能借你的手牵一下吗 🤝"],
+    ["你累不累呀？", "在我脑子里跑了一整天了"],
+    ["我有一个超能力", "超喜欢你 🦸"],
+    ["糖糖，你今天是不是吃糖了？", "不然怎么这么甜 🍬"],
+    ["你知道我最喜欢什么神吗？", "你的眼神 👀"],
+    ["你知道喝什么酒最容易醉吗？", "你的天长地久 🍷"],
+    ["我是九，你是三", "除了你还是你（9÷3=3）"],
+    ["我的手划了一道口子", "你也划一下，我们就是两口子了"],
+    ["能帮我洗个东西吗？", "喜欢我 🫧"],
+    ["我想吃碗面", "你的心里面 🍜"],
+    ["苦海无涯", "回头是我呀 🙋‍♂️"],
+    ["晴天、雨天、阴天都很好", "但都不如和你聊天"],
+    ["你会弹琴吗？", "不会？那你怎么拨动了我的心弦 🎹"],
+    ["我最近在减肥", "但对你的喜欢，一斤都减不下来"],
+    ["你闻到什么味道了吗？", "空气里都是我喜欢你的味道"],
+    ["糖糖，猜猜我的心在哪边？", "在你那边 👉"],
+  ];
+  const loveEl = document.getElementById("love");
+  const loveQ = document.getElementById("loveQ");
+  const loveA = document.getElementById("loveA");
+  let linePool = [], loveTimers = [];
+  function showLine() {
+    if (!linePool.length) linePool = LINES.slice().sort(() => Math.random() - 0.5);
+    const [q, a] = linePool.pop();
+    loveTimers.forEach(clearTimeout); loveTimers = [];
+    loveEl.classList.remove("show"); loveA.classList.remove("show");
+    loveTimers.push(setTimeout(() => {
+      loveQ.textContent = q; loveA.textContent = a;
+      loveEl.classList.add("show");
+    }, 120));
+    loveTimers.push(setTimeout(() => loveA.classList.add("show"), 1100));   // 停顿一下再出笑点
+    loveTimers.push(setTimeout(() => { loveEl.classList.remove("show"); loveA.classList.remove("show"); }, 6000));
+  }
+
   let rain = 0;
   function scatter() {
     for (const p of heart) {
@@ -155,6 +218,7 @@
       p.vx += dx / len * f; p.vy += dy / len * f; p.vz += dz / len * f;
     }
     rain = 1;
+    showLine();
   }
 
   // ---------- 投影：先绕 Y 轴转，再整体前倾 rotX，形成俯视角 ----------
@@ -219,8 +283,8 @@
 
     // 2. 从心底滴落的颗粒
     if (!reduceMotion && intro >= 1) {
-      const n = (small ? 2 : 4) + Math.round(rain * 8);
-      for (let i = 0; i < n && drips.length < DRIP_MAX + rain * 300; i++) {
+      const n = (small ? 6 : 12) + Math.round(rain * 20);
+      for (let i = 0; i < n && drips.length < DRIP_MAX + rain * 800; i++) {
         const p = lower[(Math.random() * lower.length) | 0];
         spawnDrip(p.tx * pulse, (p.ty - HEART_Y) * pulse + HEART_Y, p.tz * pulse);
       }

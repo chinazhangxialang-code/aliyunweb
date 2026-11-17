@@ -38,6 +38,7 @@ nav:
       - Agent 与工作流: llm/agent.md
       - 工程落地：Text2SQL 智能问数: llm/text2sql.md
   - 糖糖: tangtang.md
+  - 比心: /bixin/
 
 markdown_extensions:
   - admonition

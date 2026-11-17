@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>比心 - 夏浪同学的知识库</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0210; }
+  body {
+    background: radial-gradient(ellipse at 50% 45%, #3a0a2a 0%, #16040f 55%, #070108 100%);
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    touch-action: none;
+  }
+  canvas { display: block; width: 100vw; height: 100vh; cursor: grab; }
+  canvas:active { cursor: grabbing; }
+  .title {
+    position: fixed; left: 0; right: 0; top: 6vh;
+    margin: 0; text-align: center; pointer-events: none;
+    font-size: clamp(1.6rem, 5vw, 2.6rem); font-weight: 800; letter-spacing: .3em;
+    color: #ffd1e3; text-shadow: 0 0 18px #ff4d94, 0 0 40px #ff2e7e;
+  }
+  .hint {
+    position: fixed; left: 0; right: 0; bottom: 5vh;
+    margin: 0; text-align: center; pointer-events: none;
+    font-size: .8rem; color: rgba(255, 190, 215, .7); letter-spacing: .1em;
+  }
+  .back {
+    position: fixed; left: 1rem; top: 1rem; z-index: 2;
+    padding: .35rem .8rem; border-radius: 999px;
+    font-size: .8rem; color: #ffd1e3; text-decoration: none;
+    border: 1px solid rgba(255, 150, 190, .4); background: rgba(255, 255, 255, .05);
+  }
+  .back:hover { background: rgba(255, 255, 255, .12); }
+</style>
+</head>
+<body>
+<a class="back" href="/">← 回首页</a>
+<h1 class="title">比心</h1>
+<p class="hint">拖动可以转动爱心 · 点一下会跳得更快</p>
+<canvas id="c"></canvas>
+
+<script>
+(function () {
+  "use strict";
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  let W = 0, H = 0, DPR = 1, SCALE = 1;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    SCALE = Math.min(W, H) / 46;          // 心形坐标约 -17~17，留出边距
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  // ---------- 生成立体爱心的颗粒 ----------
+  // 心形轮廓：x = 16 sin³t，y = 13cos t - 5cos 2t - 2cos 3t - cos 4t
+  // 把轮廓按比例 s 缩放得到截面，再按 sqrt(1 - s²) 给 z 方向厚度，堆出一个"鼓起来"的立体心
+  const small = W < 600;
+  const HEART_N = small ? 2600 : 4200;
+  const DUST_N = small ? 500 : 900;
+  const heart = [], dust = [];
+
+  function heartXY(t) {
+    const s = Math.sin(t);
+    return [
+      16 * s * s * s,
+      13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t),
+    ];
+  }
+
+  for (let i = 0; i < HEART_N; i++) {
+    const t = Math.random() * Math.PI * 2;
+    // 大部分颗粒贴近表面，少部分在内部，看起来既有轮廓又有体积
+    const onSurface = Math.random() < 0.78;
+    const s = onSurface ? 0.92 + Math.random() * 0.08 : Math.pow(Math.random(), 0.5);
+    const [hx, hy] = heartXY(t);
+    const depth = 7.5 * Math.sqrt(Math.max(0, 1 - s * s * 0.85));
+    const z = (onSurface ? (Math.random() * 2 - 1) : (Math.random() * 2 - 1) * 0.7) * depth;
+    heart.push({
+      x: hx * s, y: hy * s + 2, z,
+      r: 0.6 + Math.random() * 1.1,
+      hue: 330 + Math.random() * 25,     // 粉到玫红
+      light: 62 + Math.random() * 22,
+      tw: Math.random() * Math.PI * 2,   // 闪烁相位
+    });
+  }
+
+  // 周围漂浮的小颗粒：分布在一个球壳里，慢慢绕心旋转
+  for (let i = 0; i < DUST_N; i++) {
+    const u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2;
+    const rad = 20 + Math.random() * 16;
+    const k = Math.sqrt(1 - u * u);
+    dust.push({
+      x: rad * k * Math.cos(th), y: rad * u, z: rad * k * Math.sin(th),
+      r: 0.4 + Math.random() * 0.9,
+      hue: 310 + Math.random() * 50,
+      sp: (Math.random() * 0.5 + 0.3) * (Math.random() < 0.5 ? -1 : 1),
+      tw: Math.random() * Math.PI * 2,
+    });
+  }
+
+  // ---------- 旋转控制：自动转 + 拖动 + 惯性 ----------
+  let rotY = 0, rotX = -0.15, velY = 0.006, velX = 0;
+  let dragging = false, lastX = 0, lastY = 0, lastMove = 0;
+  const AUTO = 0.006;
+
+  function down(x, y) { dragging = true; lastX = x; lastY = y; lastMove = performance.now(); }
+  function move(x, y) {
+    if (!dragging) return;
+    const dx = x - lastX, dy = y - lastY;
+    velY = dx * 0.005; velX = dy * 0.005;
+    rotY += velY; rotX += velX;
+    rotX = Math.max(-1.2, Math.min(1.2, rotX));
+    lastX = x; lastY = y; lastMove = performance.now();
+  }
+  function up() { dragging = false; }
+  canvas.addEventListener("mousedown", (e) => down(e.clientX, e.clientY));
+  window.addEventListener("mousemove", (e) => move(e.clientX, e.clientY));
+  window.addEventListener("mouseup", up);
+  canvas.addEventListener("touchstart", (e) => { const t = e.touches[0]; down(t.clientX, t.clientY); }, { passive: true });
+  canvas.addEventListener("touchmove", (e) => { const t = e.touches[0]; move(t.clientX, t.clientY); }, { passive: true });
+  canvas.addEventListener("touchend", up);
+
+  // 点击（不是拖动）时心跳加快一阵
+  let excite = 0, downAt = 0;
+  canvas.addEventListener("pointerdown", () => { downAt = performance.now(); });
+  canvas.addEventListener("pointerup", () => { if (performance.now() - downAt < 200) excite = 1; });
+
+  // ---------- 绘制 ----------
+  const FOV = 60;   // 透视距离，越小透视越强
+  function project(p, cy, sy, cx, sx, pulse) {
+    // 先绕 Y 轴转，再绕 X 轴转
+    let x = p.x * pulse, y = p.y * pulse, z = p.z * pulse;
+    const x1 = x * cy + z * sy, z1 = -x * sy + z * cy;
+    const y1 = y * cx - z1 * sx, z2 = y * sx + z1 * cx;
+    const f = FOV / (FOV + z2);
+    return { sx: W / 2 + x1 * f * SCALE, sy: H / 2 - y1 * f * SCALE, f, z: z2 };
+  }
+
+  let time = 0;
+  function frame() {
+    time += 1 / 60;
+    if (!dragging) {
+      // 松手后速度慢慢回到自动转速
+      velY += (AUTO - velY) * 0.02; velX *= 0.95;
+      rotY += velY; rotX += velX;
+      rotX += (-0.15 - rotX) * 0.01;
+    }
+    excite *= 0.985;
+
+    // 心跳：两段式"扑通扑通"
+    const beatSpeed = 1.2 + excite * 2.5;
+    const ph = (time * beatSpeed) % 1;
+    const beat = Math.exp(-Math.pow((ph - 0.12) / 0.06, 2)) + 0.6 * Math.exp(-Math.pow((ph - 0.32) / 0.07, 2));
+    const pulse = reduceMotion ? 1 : 1 + beat * 0.07;
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "rgba(11, 2, 16, 0.32)";   // 半透明清屏，留一点拖影
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "lighter";  // 颗粒叠加发光，不用按深度排序
+
+    const cy = Math.cos(rotY), sy = Math.sin(rotY), cx = Math.cos(rotX), sx = Math.sin(rotX);
+
+    // 心中间一团柔光
+    const glow = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, SCALE * 18 * pulse);
+    glow.addColorStop(0, "rgba(255, 60, 140, 0.22)");
+    glow.addColorStop(1, "rgba(255, 60, 140, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    for (const p of heart) {
+      const q = project(p, cy, sy, cx, sx, pulse);
+      const front = (1 - q.z / 12) * 0.5 + 0.5;            // 靠前的更亮
+      const tw = 0.75 + 0.25 * Math.sin(time * 3 + p.tw);
+      const a = Math.max(0.12, Math.min(1, front)) * tw;
+      ctx.fillStyle = `hsla(${p.hue}, 95%, ${p.light}%, ${a})`;
+      ctx.beginPath();
+      ctx.arc(q.sx, q.sy, p.r * q.f * (SCALE / 11), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 周围的小颗粒：各自绕 Y 轴再多转一点，看起来在环绕漂浮
+    for (const d of dust) {
+      const a0 = time * 0.15 * d.sp;
+      const ca = Math.cos(a0), sa = Math.sin(a0);
+      const p = { x: d.x * ca + d.z * sa, y: d.y + Math.sin(time + d.tw) * 0.6, z: -d.x * sa + d.z * ca };
+      const q = project(p, cy, sy, cx, sx, 1);
+      if (q.f <= 0) continue;
+      const tw = 0.4 + 0.6 * Math.abs(Math.sin(time * 1.5 + d.tw));
+      ctx.fillStyle = `hsla(${d.hue}, 90%, 75%, ${0.55 * tw})`;
+      ctx.beginPath();
+      ctx.arc(q.sx, q.sy, d.r * q.f * (SCALE / 11), 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (!reduceMotion || dragging) requestAnimationFrame(frame);
+  }
+
+  if (reduceMotion) {
+    // 系统开了"减少动态效果"：只画静态画面，拖动时才重绘
+    frame();
+    canvas.addEventListener("pointermove", () => { if (dragging) requestAnimationFrame(frame); });
+  } else {
+    requestAnimationFrame(frame);
+  }
+
+  // 切到别的标签页时，浏览器会自动暂停 requestAnimationFrame，回来后接着跑，不用额外处理
+})();
+</script>
+</body>
+</html>

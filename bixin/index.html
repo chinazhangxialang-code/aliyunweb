@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>比心 - 夏浪同学的知识库</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #000; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; touch-action: none; }
+  canvas { display: block; width: 100vw; height: 100vh; cursor: grab; }
+  canvas:active { cursor: grabbing; }
+  .hint {
+    position: fixed; left: 0; right: 0; bottom: 3.5vh;
+    margin: 0; text-align: center; pointer-events: none;
+    font-size: .72rem; color: rgba(255, 190, 215, .5); letter-spacing: .14em;
+    animation: hint-fade 5s ease 4s forwards;
+  }
+  @keyframes hint-fade { to { opacity: 0; } }
+  .back {
+    position: fixed; left: 1rem; top: 1rem; z-index: 2;
+    padding: .35rem .8rem; border-radius: 999px;
+    font-size: .78rem; color: #ffd1e3; text-decoration: none;
+    border: 1px solid rgba(255, 150, 190, .3); background: rgba(255, 255, 255, .03);
+    opacity: .45; transition: opacity .2s;
+  }
+  .back:hover { opacity: 1; }
+  /* 点一下弹出的土味情话 */
+  .love {
+    position: fixed; left: 50%; top: 9vh; z-index: 3;
+    width: min(86vw, 26rem); padding: .9rem 1.2rem 1rem;
+    border-radius: 18px; text-align: center; pointer-events: none;
+    color: #fff0f6; background: rgba(255, 105, 180, .14);
+    border: 1px solid rgba(255, 182, 193, .45);
+    box-shadow: 0 0 30px rgba(255, 105, 180, .35), inset 0 0 18px rgba(255, 182, 193, .12);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    opacity: 0; transform: translate(-50%, -12px) scale(.9);
+    transition: opacity .35s ease, transform .45s cubic-bezier(.2, 1.6, .4, 1);
+  }
+  .love.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  .love .q { margin: 0; font-size: .95rem; color: #ffd1e3; }
+  .love .a {
+    margin: .45rem 0 0; font-size: 1.15rem; font-weight: 700; color: #fff;
+    text-shadow: 0 0 12px #ff69b4;
+    opacity: 0; transform: translateY(6px); transition: opacity .4s ease, transform .4s ease;
+  }
+  .love .a.show { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+<a class="back" href="/">← 回首页</a>
+<p class="hint">拖动可以转动 · 点一下有惊喜</p>
+<div class="love" id="love" aria-live="polite"><p class="q" id="loveQ"></p><p class="a" id="loveA"></p></div>
+<canvas id="c"></canvas>
+
+<script>
+(function () {
+  "use strict";
+  const canvas = document.getElementById("c");
+  const ctx = canvas.getContext("2d");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  let W = 0, H = 0, DPR = 1, SCALE = 1;
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    // 画面里要放下：上面的心 + 下面的粒子光盘
+    SCALE = Math.min(W / 80, H / 58);
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  const small = Math.min(W, H) < 600;
+  const HEART_N = small ? 6500 : 11000;
+  const DISC_N = small ? 2200 : 4000;
+  const DRIP_MAX = small ? 600 : 1200;
+
+  // 配色：浅粉为主，亮粉、淡紫、少量白和紫点缀（和参考图同一个色系）
+  const PALETTE = [
+    [255, 182, 193, 0.42],  // 浅粉
+    [255, 105, 180, 0.28],  // 亮粉
+    [220, 180, 220, 0.14],  // 淡粉紫
+    [255, 240, 245, 0.10],  // 近白
+    [186, 85, 211, 0.06],   // 淡紫
+  ];
+  function pickColor(weights) {
+    let r = Math.random(), acc = 0;
+    for (let i = 0; i < PALETTE.length; i++) {
+      acc += weights ? weights[i] : PALETTE[i][3];
+      if (r <= acc) return PALETTE[i];
+    }
+    return PALETTE[0];
+  }
+  const DISC_WEIGHTS = [0.22, 0.24, 0.22, 0.14, 0.18];   // 光盘里紫色更多
+
+  // ---------- 立体爱心 ----------
+  // 用三维心形曲面方程：(x² + 9/4·z² + y² - 1)³ - x²·y³ - 9/80·z²·y³ = 0（y 朝上，z 是厚度）
+  // 在空间里随机撒点，只留下贴近曲面的点（外壳）和少量内部点，得到一颗饱满圆润的实心爱心
+  const HEART_Y = 9.5;        // 心浮在上方
+  const DISC_Y = -17;         // 光盘在下方
+  const HR = 10.5;            // 心的大小
+  function heartF(x, y, z) {
+    const a = x * x + 2.25 * z * z + y * y - 1;
+    return a * a * a - x * x * y * y * y - 0.1125 * z * z * y * y * y;
+  }
+  const heart = [];
+  while (heart.length < HEART_N) {
+    const x = rand(-1.3, 1.3), y = rand(-1.1, 1.4), z = rand(-0.8, 0.8);
+    const v = heartF(x, y, z);
+    const shell = v > -0.06 && v <= 0;
+    const inner = v <= -0.06 && Math.random() < 0.06;
+    if (!shell && !inner) continue;
+    const c = pickColor();
+    const u = rand(-1, 1), th = rand(0, 6.283), R = rand(55, 95), k = Math.sqrt(1 - u * u);
+    heart.push({
+      tx: x * HR, ty: y * HR + HEART_Y - 1, tz: z * HR,
+      sx: R * k * Math.cos(th), sy: R * u, sz: R * k * Math.sin(th),   // 开场从远处飘来
+      delay: Math.random() * 1.4,
+      ox: 0, oy: 0, oz: 0, vx: 0, vy: 0, vz: 0,
+      size: rand(0.65, 1.5), c, a: rand(0.65, 1), tw: rand(0, 6.283),
+    });
+  }
+  // 心下半部的颗粒，用来往下"滴落"
+  const lower = heart.filter((p) => p.ty < HEART_Y - 6);
+
+  // ---------- 下方旋转的粒子光盘 ----------
+  const disc = [];
+  for (let i = 0; i < DISC_N; i++) {
+    // 半径集中在中间一圈，内外逐渐稀疏，像一片星云
+    const g = (Math.random() + Math.random() + Math.random()) / 3;
+    const r = 4 + g * 30;
+    disc.push({
+      r, a: rand(0, 6.283), y: rand(-0.5, 0.5) * (1 - g * 0.5),
+      w: (0.0025 + 0.05 / r) * (Math.random() < 0.9 ? 1 : 0.6),  // 内圈转得快
+      size: rand(0.6, 1.5), c: pickColor(DISC_WEIGHTS), alpha: rand(0.35, 0.9), tw: rand(0, 6.283),
+    });
+  }
+
+  // ---------- 从心底往下滴落的颗粒 ----------
+  const drips = [];
+  function spawnDrip(px, py, pz) {
+    drips.push({ x: px + rand(-0.6, 0.6), y: py, z: pz + rand(-0.6, 0.6), vx: rand(-0.015, 0.015), vy: rand(-0.02, 0), vz: rand(-0.015, 0.015),
+      size: rand(0.7, 1.5), c: pickColor() });
+  }
+
+  // ---------- 交互 ----------
+  let rotY = 0, rotX = 0.32, velY = 0.004, velX = 0;
+  const AUTO = 0.004, TILT = 0.32;
+  let dragging = false, lastX = 0, lastY = 0, downX = 0, downY = 0, downAt = 0;
+  function down(x, y) { dragging = true; lastX = downX = x; lastY = downY = y; downAt = performance.now(); }
+  function move(x, y) {
+    if (!dragging) return;
+    velY = (x - lastX) * 0.005; velX = (y - lastY) * 0.003;
+    rotY += velY; rotX = Math.max(0.05, Math.min(0.75, rotX + velX));
+    lastX = x; lastY = y;
+  }
+  function up(x, y) {
+    dragging = false;
+    if (performance.now() - downAt < 250 && Math.hypot(x - downX, y - downY) < 8) scatter();
+  }
+  canvas.addEventListener("mousedown", (e) => down(e.clientX, e.clientY));
+  window.addEventListener("mousemove", (e) => move(e.clientX, e.clientY));
+  window.addEventListener("mouseup", (e) => up(e.clientX, e.clientY));
+  canvas.addEventListener("touchstart", (e) => { const t = e.touches[0]; down(t.clientX, t.clientY); }, { passive: true });
+  canvas.addEventListener("touchmove", (e) => { const t = e.touches[0]; move(t.clientX, t.clientY); }, { passive: true });
+  canvas.addEventListener("touchend", (e) => { const t = e.changedTouches[0]; up(t.clientX, t.clientY); });
+
+  // 点击：心轻轻散开再聚回来，同时多落下一阵"粒子雨"，再弹出一句土味情话
+  // 土味情话：先问一句，停一下再出"答案"，笑点在后半句
+  const LINES = [
+    ["你知道我的缺点是什么吗？", "缺点你 😳"],
+    ["我觉得你今天有点怪", "怪好看的 💗"],
+    ["你是哪里人？", "你是我的心上人"],
+    ["我想买一块地", "你的死心塌地 🏡"],
+    ["你知道你和星星的区别吗？", "星星在天上，你在我心里 ✨"],
+    ["你属什么的？", "不管属什么，你属于我"],
+    ["最近手头有点紧", "能借你的手牵一下吗 🤝"],
+    ["你累不累呀？", "在我脑子里跑了一整天了"],
+    ["我有一个超能力", "超喜欢你 🦸"],
+    ["糖糖，你今天是不是吃糖了？", "不然怎么这么甜 🍬"],
+    ["你知道我最喜欢什么神吗？", "你的眼神 👀"],
+    ["你知道喝什么酒最容易醉吗？", "你的天长地久 🍷"],
+    ["我是九，你是三", "除了你还是你（9÷3=3）"],
+    ["我的手划了一道口子", "你也划一下，我们就是两口子了"],
+    ["能帮我洗个东西吗？", "喜欢我 🫧"],
+    ["我想吃碗面", "你的心里面 🍜"],
+    ["苦海无涯", "回头是我呀 🙋‍♂️"],
+    ["晴天、雨天、阴天都很好", "但都不如和你聊天"],
+    ["你会弹琴吗？", "不会？那你怎么拨动了我的心弦 🎹"],
+    ["我最近在减肥", "但对你的喜欢，一斤都减不下来"],
+    ["你闻到什么味道了吗？", "空气里都是我喜欢你的味道"],
+    ["糖糖，猜猜我的心在哪边？", "在你那边 👉"],
+  ];
+  const loveEl = document.getElementById("love");
+  const loveQ = document.getElementById("loveQ");
+  const loveA = document.getElementById("loveA");
+  let linePool = [], loveTimers = [];
+  function showLine() {
+    if (!linePool.length) linePool = LINES.slice().sort(() => Math.random() - 0.5);
+    const [q, a] = linePool.pop();
+    loveTimers.forEach(clearTimeout); loveTimers = [];
+    loveEl.classList.remove("show"); loveA.classList.remove("show");
+    loveTimers.push(setTimeout(() => {
+      loveQ.textContent = q; loveA.textContent = a;
+      loveEl.classList.add("show");
+    }, 120));
+    loveTimers.push(setTimeout(() => loveA.classList.add("show"), 1100));   // 停顿一下再出笑点
+    loveTimers.push(setTimeout(() => { loveEl.classList.remove("show"); loveA.classList.remove("show"); }, 6000));
+  }
+
+  let rain = 0;
+  function scatter() {
+    for (const p of heart) {
+      const dx = p.tx, dy = p.ty - HEART_Y, dz = p.tz, len = Math.hypot(dx, dy, dz) || 1;
+      const f = rand(0.25, 0.8);
+      p.vx += dx / len * f; p.vy += dy / len * f; p.vz += dz / len * f;
+    }
+    rain = 1;
+    showLine();
+  }
+
+  // ---------- 投影：先绕 Y 轴转，再整体前倾 rotX，形成俯视角 ----------
+  const FOV = 90, CENTER_Y = -3;
+  let cy = 1, sy = 0, cx = 1, sx = 0;
+  function project(x, y, z) {
+    const x1 = x * cy + z * sy, z1 = -x * sy + z * cy;
+    const yy = y - CENTER_Y;
+    const y1 = yy * cx - z1 * sx, z2 = yy * sx + z1 * cx;
+    const f = FOV / (FOV + z2);
+    return [W / 2 + x1 * f * SCALE, H / 2 - y1 * f * SCALE, f, z2];
+  }
+  function rgba(c, a) { return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+  function pt(x, y, size, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x - size / 2, y - size / 2, size, size);
+  }
+
+  // ---------- 主循环 ----------
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+  let time = 0;
+
+  function frame() {
+    time += 1 / 60;
+    if (!dragging) {
+      velY += (AUTO - velY) * 0.02; velX *= 0.9;
+      rotY += velY; rotX += (TILT - rotX) * 0.01;
+    }
+    cy = Math.cos(rotY); sy = Math.sin(rotY); cx = Math.cos(rotX); sx = Math.sin(rotX);
+    rain *= 0.985;
+
+    // 呼吸感的轻微心跳
+    const ph = (time * 1.05) % 1;
+    const beat = Math.exp(-Math.pow((ph - 0.15) / 0.07, 2)) + 0.55 * Math.exp(-Math.pow((ph - 0.36) / 0.08, 2));
+    const pulse = reduceMotion ? 1 : 1 + beat * 0.045;
+    const intro = Math.min(1, time / 2.8);
+    const ps = SCALE / 13;   // 颗粒尺寸随屏幕缩放
+
+    // 黑底，保留一点点拖影，让流动的颗粒有轻微拖尾
+    ctx.fillStyle = "rgba(0,0,0,0.42)";
+    ctx.fillRect(0, 0, W, H);
+
+    // 光盘中心一点很淡的粉紫光，托住画面
+    const [gx, gy, gf] = project(0, DISC_Y, 0);
+    const glow = ctx.createRadialGradient(gx, gy, 0, gx, gy, 30 * SCALE * gf);
+    glow.addColorStop(0, "rgba(200, 90, 200, 0.10)");
+    glow.addColorStop(1, "rgba(200, 90, 200, 0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    // 1. 下方旋转光盘
+    for (const d of disc) {
+      d.a += reduceMotion ? 0 : d.w;
+      const x = Math.cos(d.a) * d.r, z = Math.sin(d.a) * d.r;
+      const y = DISC_Y + d.y + Math.sin(time * 0.8 + d.tw) * 0.15;
+      const [qx, qy, f, qz] = project(x, y, z);
+      if (f <= 0) continue;
+      const tw = 0.65 + 0.35 * Math.sin(time * 2 + d.tw);
+      const depthFade = Math.max(0.35, Math.min(1, 0.75 - qz / 90));
+      pt(qx, qy, Math.max(0.7, d.size * f * ps), rgba(d.c, d.alpha * tw * depthFade * intro));
+    }
+
+    // 2. 从心底滴落的颗粒
+    if (!reduceMotion && intro >= 1) {
+      const n = (small ? 6 : 12) + Math.round(rain * 20);
+      for (let i = 0; i < n && drips.length < DRIP_MAX + rain * 800; i++) {
+        const p = lower[(Math.random() * lower.length) | 0];
+        spawnDrip(p.tx * pulse, (p.ty - HEART_Y) * pulse + HEART_Y, p.tz * pulse);
+      }
+    }
+    for (let i = drips.length - 1; i >= 0; i--) {
+      const d = drips[i];
+      d.vy -= 0.0045; d.x += d.vx; d.y += d.vy; d.z += d.vz;
+      if (d.y <= DISC_Y + 0.3) {
+        // 落进光盘：变成光盘的一员，替换掉一个随机老颗粒，光盘就"越积越亮"
+        const k = (Math.random() * disc.length) | 0;
+        const r = Math.hypot(d.x, d.z);
+        disc[k].r = Math.max(4, r + rand(0, 6)); disc[k].a = Math.atan2(d.z, d.x); disc[k].c = d.c;
+        drips.splice(i, 1);
+        continue;
+      }
+      const [qx, qy, f] = project(d.x, d.y, d.z);
+      const fall = Math.min(1, (HEART_Y - d.y) / 30);
+      pt(qx, qy, Math.max(0.7, d.size * f * ps), rgba(d.c, 0.85 - fall * 0.35));
+    }
+
+    // 3. 立体爱心
+    for (const p of heart) {
+      p.vx += -p.ox * 0.018; p.vy += -p.oy * 0.018; p.vz += -p.oz * 0.018;
+      p.vx *= 0.93; p.vy *= 0.93; p.vz *= 0.93;
+      p.ox += p.vx; p.oy += p.vy; p.oz += p.vz;
+      let k = Math.max(0, Math.min(1, (time - p.delay) / 1.4));
+      k = reduceMotion ? 1 : easeOut(k);
+      const tx = p.tx * pulse, ty = (p.ty - HEART_Y) * pulse + HEART_Y, tz = p.tz * pulse;
+      const x = p.sx + (tx - p.sx) * k + p.ox;
+      const y = p.sy + (ty - p.sy) * k + p.oy;
+      const z = p.sz + (tz - p.sz) * k + p.oz;
+      const [qx, qy, f, qz] = project(x, y, z);
+      if (f <= 0) continue;
+      const front = Math.max(0.35, Math.min(1, 0.75 - qz / 30));   // 背面暗一些，立体感更强
+      const tw = 0.8 + 0.2 * Math.sin(time * 2.5 + p.tw);
+      pt(qx, qy, Math.max(0.7, p.size * f * ps), rgba(p.c, p.a * front * tw));
+    }
+
+    if (!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  if (reduceMotion) { time = 5; frame(); }
+  else requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

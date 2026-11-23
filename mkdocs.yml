@@ -37,7 +37,7 @@ nav:
       - 检索与 RAG: llm/rag.md
       - Agent 与工作流: llm/agent.md
       - 工程落地：Text2SQL 智能问数: llm/text2sql.md
-  - 敏敏: tangtang.md
+  - 敏敏: minmin.md
   - 比心: /bixin/
 
 markdown_extensions:

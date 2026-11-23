@@ -5,7 +5,7 @@
   if (!stage) return;
 
   // 开场白：必须第一个出现
-  const GREETING = "糖糖，您好呀，欢迎来到我的域名世界！！！";
+  const GREETING = "敏敏，您好呀，欢迎来到我的域名世界！！！";
 
   // 温柔话：参考网上常见的情话整理改写
   const WORDS = [

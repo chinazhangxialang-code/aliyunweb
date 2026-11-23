@@ -1,4 +1,4 @@
-// "糖糖"页面：先打出开场白，再在随机位置弹出温柔话；点击屏幕会冒小爱心并多弹一句。
+// "敏敏"页面：先打出开场白，再在随机位置弹出温柔话；点击屏幕会冒小爱心并多弹一句。
 (function () {
   "use strict";
   const stage = document.getElementById("tt-stage");

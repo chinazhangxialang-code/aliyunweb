@@ -1,6 +1,6 @@
 ---
 template: tangtang.html
-title: 糖糖
+title: 敏敏
 hide:
   - navigation
   - toc
